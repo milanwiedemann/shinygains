@@ -1,0 +1,12 @@
+name: shinygains
+title: shinygains
+username:
+account: milanwiedemann
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1655055
+bundleId: 2727921
+url: https://milanwiedemann.shinyapps.io/shinygains/
+when: 1579012278.14353
+asMultiple: FALSE
+asStatic: FALSE
