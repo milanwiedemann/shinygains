@@ -9,6 +9,7 @@
 
 library(shiny)
 library(shinydashboard)
+library(patchwork)
 library(suddengains)
 library(ggplot2)
 library(dplyr)
@@ -24,6 +25,15 @@ ui <- navbarPage(
       helpText(),
       # just a placeholder for a little bit top margin
       h4("Select Criteria:"),
+      wellPanel(
+        selectInput(
+          "sgsl",
+          label = "Identify:",
+          choices = list("Sudden Gains" = "sg",
+                         "Sudden Losses" = "sl"),
+          selected = "sg"
+        )
+      ),
       tabsetPanel(
         tabPanel(
           "Crit 1",
@@ -149,8 +159,57 @@ ui <- navbarPage(
       9,
       h4("Results:"),
       tabsetPanel(
-        tabPanel("Summary",
-                 hr("Reference: xxx.")),
+        tabPanel(
+          "Summary",
+          helpText(),
+          tabsetPanel(
+            tabPanel("Descriptives",
+                     helpText(),
+                     
+                     fixedRow(column(9,
+                                     plotOutput("plot_sg_desc_bysg")
+                                     )),
+                     hr(),
+                     fixedRow(column(9,
+                                     helpText(),
+                                     selectInput(
+                                       "multiple_sg_select",
+                                       label = "Specify which sudden gain/loss to select:",
+                                       choices = list(
+                                         "first" = "first",
+                                         "last" = "last",
+                                         # THIS IS A BUG IN THE R PACKAGE
+                                         # NEEDS TO GET UPDATED SPELLING MISTAKE!!!!
+                                         # "smallest" = "smallest",
+                                         "largest" = "largest"
+                                       ),
+                                       selected = "first"
+                                     ),
+                                     helpText(),
+                                     plotOutput("plot_sg_desc_byperson")
+                                     )
+                            ),
+                     # plotOutput("plot_sg_session_n", height = 850),
+            ),
+            tabPanel("Average Gain",
+                     helpText(),
+                     textOutput("describe_sg_bysg"),
+                     hr(),
+                     textOutput("describe_sg_byperson")
+                     ),
+            tabPanel("Longitudinal Plot",),
+            tabPanel("Descriptives",
+            
+          fixedRow(column(6,
+                          "Level 1a"),
+                   column(3,
+                          "Level 1b")),
+          fixedRow(column(6,
+                          "Level 2a"),
+                   column(3,
+                          "Level 2b")),
+          hr("Reference: xxx.")
+        ))),
         tabPanel(
           "Selected Data Set",
           helpText(),
@@ -158,13 +217,13 @@ ui <- navbarPage(
           helpText("Note: xxx.")
         ),
         tabPanel(
-          "'bysg' Data Set",
+          HTML("<I>bysg</I> Data Set"),
           helpText(),
           DT::dataTableOutput("bysg_table"),
           helpText("Note: xxx.")
         ),
         tabPanel(
-          "'byperson' Data Set",
+          HTML("<I>byperson</I> Data Set"),
           helpText(),
           selectInput(
             "multiple_sg_select",
@@ -186,8 +245,8 @@ ui <- navbarPage(
       )
     )
   ),
-  tabPanel("Check Interval",),
-  tabPanel("References",)
+  tabPanel("Check Interval", ),
+  tabPanel("References", )
 )
 
 # Define server logic required to draw a histogram
@@ -196,14 +255,13 @@ server <- function(input, output, session) {
   
   # Create dataset with option to add missing values
   sgdata_reactive <- reactive({
-    
     sgdata_temp <- suddengains::sgdata
     
     sgdata_weekly_temp <- sgdata_temp %>%
       select("id", input$sg_var_list)
-
+    
     sgdata_weekly_temp_na <- sgdata_weekly_temp %>%
-      tidyr::gather(vars, value,-id) %>%
+      tidyr::gather(vars, value, -id) %>%
       dplyr::mutate(vars = base::factor(vars, levels =  input$sg_var_list)) %>%
       dplyr::mutate(
         random_num = runif(nrow(.)),
@@ -263,19 +321,22 @@ server <- function(input, output, session) {
       
       updateSelectInput(session,
                         "sg_crit3_alpha",
-                        choices = list("NA" = 1),
-                        selected = 1)
+                        choices = list("NA" = 0),
+                        selected = 0)
     }
+  })
+  
     # Create bysg data
     bysg_reactive <- reactive({
       create_bysg(
         data = sgdata_reactive(),
+        identify = input$sgsl,
         sg_crit1_cutoff = input$sg_crit1_cutoff,
         sg_crit2_pct = (input$sg_crit2_pct / 100),
         sg_crit3 = input$sg_crit3,
         # sg_crit3_alpha = input$sg_crit3_alpha,
-        # sg_crit3_adjust = input$sg_crit3_adjust,
-        # sg_crit3_critical_value = input$sg_crit3_critical_value,
+        sg_crit3_adjust = input$sg_crit3_adjust,
+        sg_crit3_critical_value = input$sg_crit3_critical_value,
         id_var_name = "id",
         tx_start_var_name = input$sg_var_list[1],
         tx_end_var_name = last(input$sg_var_list),
@@ -287,6 +348,7 @@ server <- function(input, output, session) {
     byperson_reactive <- reactive({
       create_byperson(
         data = sgdata_reactive(),
+        identify = input$sgsl,
         multiple_sg_select = input$multiple_sg_select,
         sg_crit1_cutoff = input$sg_crit1_cutoff,
         sg_crit2_pct = (input$sg_crit2_pct / 100),
@@ -320,6 +382,7 @@ server <- function(input, output, session) {
         ),
         rownames = FALSE
       ))
+    
     # Create bysg data table
     output$byperson_table <-
       DT::renderDataTable(
@@ -343,7 +406,132 @@ server <- function(input, output, session) {
           rownames = FALSE
         )
       )
-  })
+    
+    # Longitudinal plot ----
+    output$plot_sg_desc_bysg <- renderPlot({
+      
+      y_limit <- bysg_reactive() %>% 
+        select(sg_session_n) %>% 
+        group_by(sg_session_n) %>% 
+        count() %>% 
+        drop_na() %>% 
+        max(.$n)
+      
+      plot_bysg_sg_session_n <- bysg_reactive() %>% 
+        select(sg_session_n) %>% 
+        ggplot(aes(sg_session_n)) + 
+        geom_bar() +
+        labs(x = "Pregain Time Point", y = "Number of Sudden Gains", fill = "") +
+        scale_x_continuous(breaks = seq(2, max(bysg_reactive()$sg_session_n, na.rm = T), by = 1)) +
+        scale_y_continuous(breaks = seq(0, 35, by = 2)) +
+        theme(text = element_text(size = 14)) +
+        coord_cartesian(ylim = c(0, y_limit)) +
+        ggtitle('A.1: bysg (all gains)')
+
+      
+      plot_bysg_average_sg <- plot_sg(data = bysg_reactive(),
+                                      id_var_name = "id",
+                                      tx_start_var_name = input$sg_var_list[1],
+                                      tx_end_var_name = last(input$sg_var_list),
+                                      sg_pre_post_var_list = c("sg_bdi_2n", "sg_bdi_1n", "sg_bdi_n",
+                                                               "sg_bdi_n1", "sg_bdi_n2", "sg_bdi_n3"),
+                                      ylab = "BDI", xlab = "Session") +
+        ggtitle('B.1: bysg (all gains)') +
+        theme(text = element_text(size = 14))
+      
+      
+
+      
+      plot_bysg_sg_session_n + plot_bysg_average_sg
+        # plot_annotation(title = 'Distribution of Pregain Time Points',
+        #                 # tag_levels = c('A'),
+        #                 theme = theme(plot.title = element_text(size = 22))
+        # )
+      
+    })
+    
+    # Longitudinal plot ----
+    output$plot_sg_desc_byperson <- renderPlot({
+      
+      y_limit <- bysg_reactive() %>% 
+        select(sg_session_n) %>% 
+        group_by(sg_session_n) %>% 
+        count() %>% 
+        drop_na() %>% 
+        max(.$n)
+
+      
+      plot_byperson_sg_session_n <- byperson_reactive() %>% 
+        select(sg_session_n) %>% 
+        ggplot(aes(sg_session_n)) + 
+        geom_bar() +
+        labs(x = "Pregain Time Point", y = "Number of Sudden Gains", fill = "") +
+        scale_x_continuous(breaks = seq(2, max(byperson_reactive()$sg_session_n, na.rm = T), by = 1)) +
+        scale_y_continuous(breaks = seq(0, 35, by = 2)) +
+        theme(text = element_text(size = 14)) +
+        coord_cartesian(ylim = c(0, y_limit)) +
+        ggtitle(paste0('A.2: byperson (', input$multiple_sg_select  ," gain)" ))
+      
+      plot_byperson_average_sg <- plot_sg(data = byperson_reactive(),
+                                          id_var_name = "id",
+                                          tx_start_var_name = input$sg_var_list[1],
+                                          tx_end_var_name = last(input$sg_var_list),
+                                          sg_pre_post_var_list = c("sg_bdi_2n", "sg_bdi_1n", "sg_bdi_n",
+                                                                   "sg_bdi_n1", "sg_bdi_n2", "sg_bdi_n3"),
+                                          ylab = "BDI", xlab = "Session") +
+        ggtitle(paste0('B.2: byperson (', input$multiple_sg_select  ," gain)" )) +
+        theme(text = element_text(size = 14))
+      
+      
+      # plot_bysg_average_sg <- plot_sg(data = bysg_reactive(),
+      #         id_var_name = "id",
+      #         tx_start_var_name = input$sg_var_list[1],
+      #         tx_end_var_name = last(input$sg_var_list),
+      #         sg_pre_post_var_list = c("sg_bdi_2n", "sg_bdi_1n", "sg_bdi_n",
+      #                                  "sg_bdi_n1", "sg_bdi_n2", "sg_bdi_n3"),
+      #         ylab = "BDI", xlab = "Session") +
+      #   ggtitle('A: bysg (all gains)') +
+      #   theme(text = element_text(size = 16))
+      # 
+      # plot_byperson_average_sg <- plot_sg(data = byperson_reactive(),
+      #         id_var_name = "id",
+      #         tx_start_var_name = input$sg_var_list[1],
+      #         tx_end_var_name = last(input$sg_var_list),
+      #         sg_pre_post_var_list = c("sg_bdi_2n", "sg_bdi_1n", "sg_bdi_n",
+      #                                  "sg_bdi_n1", "sg_bdi_n2", "sg_bdi_n3"),
+      #         ylab = "BDI", xlab = "Session") +
+      #   ggtitle(paste0('B: byperson (', input$multiple_sg_select  ," gain)" )) +
+      #   theme(text = element_text(size = 16))
+      # 
+      # plot_bysg_average_sg + plot_byperson_average_sg +
+      #   plot_annotation(title = 'Average Gain Magnitude',
+      #                   # tag_levels = c('A'),
+      #                   theme = theme(plot.title = element_text(size = 22))
+      #   )
+      
+      plot_byperson_sg_session_n + plot_byperson_average_sg
+      
+    })
+    
+    
+    describe_sg_bysg <- renderText({
+      
+      bysg_reactive() %>% 
+        describe_sg(sg_data_structure = "bysg")$total_n %>% paste()
+      
+    })
+    
+    
+    describe_sg_byperson <- renderText({
+      
+      byperson_reactive() %>% 
+        describe_sg(sg_data_structure = "byperson")$total_n
+      
+    })
+      
+      
+      
+
 }
 # Run the application
 shinyApp(ui = ui, server = server)
