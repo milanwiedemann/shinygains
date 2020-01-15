@@ -13,10 +13,32 @@ library(patchwork)
 library(suddengains)
 library(ggplot2)
 library(dplyr)
+library(tidyr)
 options(htmlwidgets.TOJSON_ARGS = list(na = 'string'))
 
 # Define UI for application that draws a histogram
-ui <- navbarPage(
+ui <- tagList(
+  tags$head(
+    HTML(
+      "<script>
+      (function(i,s,o,g,r,a,m){
+        i['GoogleAnalyticsObject']=r;i[r]=i[r]||
+        function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();
+          a=s.createElement(o), m=s.getElementsByTagName(o)[0];
+          a.async=1;
+          a.src=g;m.parentNode.insertBefore(a,m)
+        })
+      (window, document, 'script',
+        '//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-113145816-3', 'auto');
+        ga('send', 'pageview');
+
+      </script>"
+    )
+  ),
+  navbarPage(
   "shinygains",
   tabPanel(
     "Sudden Gains",
@@ -248,6 +270,7 @@ ui <- navbarPage(
   tabPanel("Check Interval", ),
   tabPanel("References", )
 )
+)
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
@@ -336,7 +359,7 @@ server <- function(input, output, session) {
         sg_crit3 = input$sg_crit3,
         # sg_crit3_alpha = input$sg_crit3_alpha,
         sg_crit3_adjust = input$sg_crit3_adjust,
-        sg_crit3_critical_value = input$sg_crit3_critical_value,
+        # sg_crit3_critical_value = input$sg_crit3_critical_value,
         id_var_name = "id",
         tx_start_var_name = input$sg_var_list[1],
         tx_end_var_name = last(input$sg_var_list),
