@@ -8,9 +8,11 @@
 #
 
 library(shiny)
-library(shinydashboard)
+# library(shinydashboard)
+library(tidyverse)
 library(patchwork)
 library(suddengains)
+# devtools::install_github("milanwiedemann/suddengains", ref = "plos-one-revisions")
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -377,7 +379,7 @@ server <- function(input, output, session) {
         sg_crit2_pct = (input$sg_crit2_pct / 100),
         sg_crit3 = input$sg_crit3,
         # sg_crit3_alpha = input$sg_crit3_alpha,
-        # sg_crit3_adjust = input$sg_crit3_adjust,
+        sg_crit3_adjust = input$sg_crit3_adjust,
         # sg_crit3_critical_value = input$sg_crit3_critical_value,
         id_var_name = "id",
         tx_start_var_name = input$sg_var_list[1],
@@ -449,7 +451,8 @@ server <- function(input, output, session) {
         scale_y_continuous(breaks = seq(0, 35, by = 2)) +
         theme(text = element_text(size = 14)) +
         coord_cartesian(ylim = c(0, y_limit)) +
-        ggtitle('A.1: bysg (all gains)')
+        ggtitle('A.1: bysg (all gains)') +
+        theme_gray()
 
       
       plot_bysg_average_sg <- plot_sg(data = bysg_reactive(),
@@ -460,7 +463,8 @@ server <- function(input, output, session) {
                                                                "sg_bdi_n1", "sg_bdi_n2", "sg_bdi_n3"),
                                       ylab = "BDI", xlab = "Session") +
         ggtitle('B.1: bysg (all gains)') +
-        theme(text = element_text(size = 14))
+        theme(text = element_text(size = 14)) +
+        theme_gray()
       
       
 
@@ -493,7 +497,8 @@ server <- function(input, output, session) {
         scale_y_continuous(breaks = seq(0, 35, by = 2)) +
         theme(text = element_text(size = 14)) +
         coord_cartesian(ylim = c(0, y_limit)) +
-        ggtitle(paste0('A.2: byperson (', input$multiple_sg_select  ," gain)" ))
+        ggtitle(paste0('A.2: byperson (', input$multiple_sg_select  ," gain)" )) +
+        theme_gray()
       
       plot_byperson_average_sg <- plot_sg(data = byperson_reactive(),
                                           id_var_name = "id",
@@ -503,7 +508,8 @@ server <- function(input, output, session) {
                                                                    "sg_bdi_n1", "sg_bdi_n2", "sg_bdi_n3"),
                                           ylab = "BDI", xlab = "Session") +
         ggtitle(paste0('B.2: byperson (', input$multiple_sg_select  ," gain)" )) +
-        theme(text = element_text(size = 14))
+        theme(text = element_text(size = 14)) +
+        theme_gray()
       
       
       # plot_bysg_average_sg <- plot_sg(data = bysg_reactive(),
@@ -529,7 +535,7 @@ server <- function(input, output, session) {
       # plot_bysg_average_sg + plot_byperson_average_sg +
       #   plot_annotation(title = 'Average Gain Magnitude',
       #                   # tag_levels = c('A'),
-      #                   theme = theme(plot.title = element_text(size = 22))
+      #                   theme = theme(plot.title = element_text(size = 22), text = element_text(size = 14))
       #   )
       
       plot_byperson_sg_session_n + plot_byperson_average_sg
