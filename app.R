@@ -56,7 +56,8 @@ ui <- tagList(
           choices = list("Sudden Gains" = "sg",
                          "Sudden Losses" = "sl"),
           selected = "sg"
-        )
+        ),
+        helpText("Note: The cut-off value for Crit 1 needs to be positive to identify sudden gains and negative to identify sudden losses.")
       ),
       tabsetPanel(
         tabPanel(
@@ -77,7 +78,9 @@ ui <- tagList(
           "Crit 2",
           helpText(),
           wellPanel(
-            checkboxInput("sg_crit2", label = "Apply Criterion 2", value = TRUE),
+            checkboxInput("sg_crit2", 
+                          label = "Apply Criterion 2", 
+                          value = TRUE),
             sliderInput(
               "sg_crit2_pct",
               "Percentage:",
@@ -103,11 +106,11 @@ ui <- tagList(
               "sg_crit3_alpha",
               label = "Select alpha:",
               choices = list(
-                "0.5" = 1,
-                ".01" = 2,
-                ".001" = 3
+                "0.5" = "0.5",
+                ".01" = ".01",
+                ".001" = ".001"
               ),
-              selected = 1
+              selected = "0.5"
             ),
             numericInput(
               "sg_crit3_critical_value",
@@ -190,50 +193,94 @@ ui <- tagList(
             tabPanel("Descriptives",
                      helpText(),
                      
-                     fixedRow(column(9,
-                                     plotOutput("plot_sg_desc_bysg")
-                                     )),
+                     fixedRow(column(12,
+                                                          fixedRow(
+                                                            column(
+                                                              4,
+                                                              h5("Criterion 1"),
+                                                              verbatimTextOutput("descriptives_sg_crit1")
+                                                            ),
+                                                            column(
+                                                              4,
+                                                              h5("Criterion 2"),
+                                                              verbatimTextOutput("descriptives_sg_crit2")
+                                                            )
+                                                            ,
+                                                            column(
+                                                              4,
+                                                              h5("Criterion 3"),
+                                                              verbatimTextOutput("descriptives_sg_crit3")
+                                                            )
+                                                          )
+                                     )
+                              ),
                      hr(),
-                     fixedRow(column(9,
+                     fixedRow(column(12,
+                                     fixedRow(
+                                       column(
+                                         4,
+                                         h5("Numbers"),
+                                         verbatimTextOutput("descriptives_n_summary")
+                                       ),
+                                       column(
+                                         4,
+                                         h5("Sudden Gains"),
+                                         verbatimTextOutput("descriptives_sg_summary")
+                                       ),
+                                       column(
+                                         4,
+                                         h5("Magnitude"),
+                                         verbatimTextOutput("descriptives_magnitude_summary")
+                                       )
+                                     )
+                     )
+                     ),
+                     hr(),
+                     fixedRow(column(12,
                                      helpText(),
                                      selectInput(
-                                       "multiple_sg_select",
-                                       label = "Specify which sudden gain/loss to select:",
+                                       "describe_bysg_or_byperson",
+                                       label = "Specify which data set to describe:",
                                        choices = list(
-                                         "first" = "first",
-                                         "last" = "last",
-                                         # THIS IS A BUG IN THE R PACKAGE
-                                         # NEEDS TO GET UPDATED SPELLING MISTAKE!!!!
-                                         # "smallest" = "smallest",
-                                         "largest" = "largest"
+                                         "bysg" = "bysg",
+                                         "byperson" = "byperson"
                                        ),
-                                       selected = "first"
+                                       selected = "bysg"
                                      ),
                                      helpText(),
-                                     plotOutput("plot_sg_desc_byperson")
+                                     plotOutput("plot_sg_desc"),
+                                     helpText("Note: To change the selected gain for the byperson data set, go to the 'Create byperson Data Set' panel at the top.")
                                      )
-                            ),
-                     # plotOutput("plot_sg_session_n", height = 850),
-            ),
-            tabPanel("Average Gain",
-                     helpText(),
-                     textOutput("describe_sg_bysg"),
-                     hr(),
-                     textOutput("describe_sg_byperson")
+                            )
                      ),
-            tabPanel("Longitudinal Plot",),
-            tabPanel("Descriptives",
-            
-          fixedRow(column(6,
-                          "Level 1a"),
-                   column(3,
-                          "Level 1b")),
-          fixedRow(column(6,
-                          "Level 2a"),
-                   column(3,
-                          "Level 2b")),
-          hr("Reference: xxx.")
-        ))),
+            tabPanel("Longitudinal Plot",
+                     helpText(),
+                     selectInput(
+                       "select_ids_list",
+                       "Select IDs:",
+                       choices = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+                                   "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                                   "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+                                   "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+                                   "41", "42", "43"),
+                       selected = c("2", "4", "5", "9"),
+                       multiple = TRUE
+                     ),
+                     hr(),
+                     plotOutput("plot_sg_longitudinal")
+                     )
+        #     tabPanel("Example Code Here",
+        #   fixedRow(column(6,
+        #                   "Level 1a"),
+        #            column(3,
+        #                   "Level 1b")),
+        #   fixedRow(column(6,
+        #                   "Level 2a"),
+        #            column(3,
+        #                   "Level 2b")),
+        #   hr("Reference: xxx.")
+        # )
+        )),
         tabPanel(
           "Selected Data Set",
           helpText(),
@@ -241,13 +288,13 @@ ui <- tagList(
           helpText("Note: xxx.")
         ),
         tabPanel(
-          HTML("<I>bysg</I> Data Set"),
+          HTML("Create <I>bysg</I> Data Set"),
           helpText(),
           DT::dataTableOutput("bysg_table"),
           helpText("Note: xxx.")
         ),
         tabPanel(
-          HTML("<I>byperson</I> Data Set"),
+          HTML("Create <I>byperson</I> Data Set"),
           helpText(),
           selectInput(
             "multiple_sg_select",
@@ -257,11 +304,14 @@ ui <- tagList(
               "last" = "last",
               # THIS IS A BUG IN THE R PACKAGE
               # NEEDS TO GET UPDATED SPELLING MISTAKE!!!!
-              # "smallest" = "smallest",
+              "smallest" = "smallest",
               "largest" = "largest"
             ),
             selected = "first"
           ),
+          
+
+          
           helpText(),
           DT::dataTableOutput("byperson_table"),
           helpText("Note: xxx.")
@@ -333,11 +383,11 @@ server <- function(input, output, session) {
         session,
         "sg_crit3_alpha",
         choices = list(
-          "0.5" = 1,
-          ".01" = 2,
-          ".001" = 3
+          "0.5" = "0.5",
+          ".01" = ".01",
+          ".001" = ".001"
         ),
-        selected = 1
+        selected = "0.5"
       )
     } else if (input$sg_crit3_adjust == FALSE) {
       updateNumericInput(session,
@@ -346,13 +396,14 @@ server <- function(input, output, session) {
       
       updateSelectInput(session,
                         "sg_crit3_alpha",
-                        choices = list("NA" = 0),
-                        selected = 0)
+                        choices = list("NA" = "NA"),
+                        selected = "NA")
     }
   })
   
     # Create bysg data
     bysg_reactive <- reactive({
+      
       create_bysg(
         data = sgdata_reactive(),
         identify = input$sgsl,
@@ -368,9 +419,14 @@ server <- function(input, output, session) {
         sg_var_list = input$sg_var_list,
         sg_measure_name = "bdi"
       )
+      
     })
+  
+    
+    
     # Create bysg data
     byperson_reactive <- reactive({
+      
       create_byperson(
         data = sgdata_reactive(),
         identify = input$sgsl,
@@ -432,8 +488,8 @@ server <- function(input, output, session) {
         )
       )
     
-    # Longitudinal plot ----
-    output$plot_sg_desc_bysg <- renderPlot({
+    #  plot ----
+    output$plot_sg_desc <- renderPlot({
       
       y_limit <- bysg_reactive() %>% 
         select(sg_session_n) %>% 
@@ -442,123 +498,172 @@ server <- function(input, output, session) {
         drop_na() %>% 
         max(.$n)
       
-      plot_bysg_sg_session_n <- bysg_reactive() %>% 
-        select(sg_session_n) %>% 
-        ggplot(aes(sg_session_n)) + 
-        geom_bar() +
-        labs(x = "Pregain Time Point", y = "Number of Sudden Gains", fill = "") +
-        scale_x_continuous(breaks = seq(2, max(bysg_reactive()$sg_session_n, na.rm = T), by = 1)) +
-        scale_y_continuous(breaks = seq(0, 35, by = 2)) +
-        theme(text = element_text(size = 14)) +
-        coord_cartesian(ylim = c(0, y_limit)) +
-        ggtitle('A.1: bysg (all gains)') +
-        theme_gray()
+      if (input$describe_bysg_or_byperson == "bysg") {
+        
+        plot_bysg_sg_session_n <- bysg_reactive() %>% 
+          select(sg_session_n) %>% 
+          ggplot(aes(sg_session_n)) + 
+          geom_bar() +
+          labs(x = "Pregain Time Point", y = "Count", fill = "") +
+          scale_x_continuous(breaks = seq(2, (length(input$sg_var_list) - 2), by = 1)) +
+          scale_y_continuous(breaks = seq(0, 35, by = 2)) +
+          coord_cartesian(ylim = c(0, y_limit), xlim = c(2, (length(input$sg_var_list) - 2))) +
+          ggtitle('Fig. A.1: bysg (all gains)') +
+          theme_gray()
 
+        plot_bysg_average_sg <- plot_sg(data = bysg_reactive(),
+                                        id_var_name = "id",
+                                        tx_start_var_name = input$sg_var_list[1],
+                                        tx_end_var_name = last(input$sg_var_list),
+                                        sg_pre_post_var_list = c("sg_bdi_2n", "sg_bdi_1n", "sg_bdi_n",
+                                                                 "sg_bdi_n1", "sg_bdi_n2", "sg_bdi_n3"),
+                                        ylab = "BDI", xlab = "Session") +
+          ggtitle('Fig. B.1: bysg (all gains)') +
+          theme_gray()
+        
+        plot_bysg_sg_session_n + plot_bysg_average_sg & 
+          theme(text = element_text(size = 18))
+        
+      } else if (input$describe_bysg_or_byperson == "byperson") {
+        
+        plot_byperson_sg_session_n <- byperson_reactive() %>% 
+          select(sg_session_n) %>% 
+          ggplot(aes(sg_session_n)) + 
+          geom_bar() +
+          labs(x = "Pregain Time Point", y = "Count", fill = "") +
+          scale_x_continuous(breaks = seq(2, (length(input$sg_var_list) - 2), by = 1)) +
+          scale_y_continuous(breaks = seq(0, 35, by = 2)) +
+          coord_cartesian(ylim = c(0, y_limit), xlim = c(2, (length(input$sg_var_list) - 2))) +
+          ggtitle(paste0('Fig. A.2: byperson (', input$multiple_sg_select  ," gain)" )) +
+          theme_gray()
+        
+        plot_byperson_average_sg <- plot_sg(data = byperson_reactive(),
+                                            id_var_name = "id",
+                                            tx_start_var_name = input$sg_var_list[1],
+                                            tx_end_var_name = last(input$sg_var_list),
+                                            sg_pre_post_var_list = c("sg_bdi_2n", "sg_bdi_1n", "sg_bdi_n",
+                                                                     "sg_bdi_n1", "sg_bdi_n2", "sg_bdi_n3"),
+                                            ylab = "BDI", xlab = "Session") +
+          ggtitle(paste0('Fig. B.2: byperson (', input$multiple_sg_select  ," gain)" )) +
+          theme_gray()
+        
+        plot_byperson_sg_session_n + plot_byperson_average_sg  & 
+          theme(text = element_text(size = 18))
+        
+      }
       
-      plot_bysg_average_sg <- plot_sg(data = bysg_reactive(),
-                                      id_var_name = "id",
-                                      tx_start_var_name = input$sg_var_list[1],
-                                      tx_end_var_name = last(input$sg_var_list),
-                                      sg_pre_post_var_list = c("sg_bdi_2n", "sg_bdi_1n", "sg_bdi_n",
-                                                               "sg_bdi_n1", "sg_bdi_n2", "sg_bdi_n3"),
-                                      ylab = "BDI", xlab = "Session") +
-        ggtitle('B.1: bysg (all gains)') +
-        theme(text = element_text(size = 14)) +
-        theme_gray()
       
+    })
+    
+    
+    
+    output$plot_sg_longitudinal <-   renderPlot({
       
+      plot_sg_trajectories(data = suddengains::sgdata,
+                           id_var = "id",
+                           select_id_list = input$select_ids_list,
+                           var_list = input$sg_var_list,
+                           show_id = TRUE,
+                           id_label_size = 5.5,
+                           label.padding = .2,
+                           show_legend = TRUE,
+                           colour = "viridis",
+                           viridis_option = "D",
+                           viridis_begin = 0,
+                           viridis_end = 1,
+                           connect_missing = TRUE,
+                           scale_x_num = TRUE,
+                           scale_x_num_start = 1,
+                           apaish = FALSE,
+                           xlab = "Session",
+                           ylab = "BDI") +
+        ggtitle(paste0("Fig. C: Trajectories of BDI scores for a selection of participants")) +
+        theme(text = element_text(size = 18))
+      
+    })
+    
+    
+      output$descriptives_sg_crit1 <- renderText({
+        paste0("Crit 1: ",
+               input$sg_crit1,
+               "\n",
+               "Crit 1, Cut-off: ",
+               input$sg_crit1_cutoff,
+               " \n \n ")
+      })
 
-      
-      plot_bysg_sg_session_n + plot_bysg_average_sg
-        # plot_annotation(title = 'Distribution of Pregain Time Points',
-        #                 # tag_levels = c('A'),
-        #                 theme = theme(plot.title = element_text(size = 22))
-        # )
-      
-    })
-    
-    # Longitudinal plot ----
-    output$plot_sg_desc_byperson <- renderPlot({
-      
-      y_limit <- bysg_reactive() %>% 
-        select(sg_session_n) %>% 
-        group_by(sg_session_n) %>% 
-        count() %>% 
-        drop_na() %>% 
-        max(.$n)
+      output$descriptives_sg_crit2 <- renderText({
+        paste0("Crit 2: ",
+               input$sg_crit2,
+               "\n",
+               "Crit 2, Pct: ",
+               input$sg_crit2_pct, "%",
+               " \n \n ")
+      })
 
+      output$descriptives_sg_crit3 <- renderText({
+        paste0(
+          "Crit 3: ",
+          input$sg_crit3,
+          "\n",
+          "Crit 3, Adjusted: ",
+          input$sg_crit3_adjust,
+          "\n",
+          "Crit 3, Alpha: ",
+          input$sg_crit3_alpha,
+          "\n",
+          "Crit 3, Critical Value: ",
+          input$sg_crit3_critical_value
+        )
+      })
       
-      plot_byperson_sg_session_n <- byperson_reactive() %>% 
-        select(sg_session_n) %>% 
-        ggplot(aes(sg_session_n)) + 
-        geom_bar() +
-        labs(x = "Pregain Time Point", y = "Number of Sudden Gains", fill = "") +
-        scale_x_continuous(breaks = seq(2, max(byperson_reactive()$sg_session_n, na.rm = T), by = 1)) +
-        scale_y_continuous(breaks = seq(0, 35, by = 2)) +
-        theme(text = element_text(size = 14)) +
-        coord_cartesian(ylim = c(0, y_limit)) +
-        ggtitle(paste0('A.2: byperson (', input$multiple_sg_select  ," gain)" )) +
-        theme_gray()
-      
-      plot_byperson_average_sg <- plot_sg(data = byperson_reactive(),
-                                          id_var_name = "id",
-                                          tx_start_var_name = input$sg_var_list[1],
-                                          tx_end_var_name = last(input$sg_var_list),
-                                          sg_pre_post_var_list = c("sg_bdi_2n", "sg_bdi_1n", "sg_bdi_n",
-                                                                   "sg_bdi_n1", "sg_bdi_n2", "sg_bdi_n3"),
-                                          ylab = "BDI", xlab = "Session") +
-        ggtitle(paste0('B.2: byperson (', input$multiple_sg_select  ," gain)" )) +
-        theme(text = element_text(size = 14)) +
-        theme_gray()
-      
-      
-      # plot_bysg_average_sg <- plot_sg(data = bysg_reactive(),
-      #         id_var_name = "id",
-      #         tx_start_var_name = input$sg_var_list[1],
-      #         tx_end_var_name = last(input$sg_var_list),
-      #         sg_pre_post_var_list = c("sg_bdi_2n", "sg_bdi_1n", "sg_bdi_n",
-      #                                  "sg_bdi_n1", "sg_bdi_n2", "sg_bdi_n3"),
-      #         ylab = "BDI", xlab = "Session") +
-      #   ggtitle('A: bysg (all gains)') +
-      #   theme(text = element_text(size = 16))
-      # 
-      # plot_byperson_average_sg <- plot_sg(data = byperson_reactive(),
-      #         id_var_name = "id",
-      #         tx_start_var_name = input$sg_var_list[1],
-      #         tx_end_var_name = last(input$sg_var_list),
-      #         sg_pre_post_var_list = c("sg_bdi_2n", "sg_bdi_1n", "sg_bdi_n",
-      #                                  "sg_bdi_n1", "sg_bdi_n2", "sg_bdi_n3"),
-      #         ylab = "BDI", xlab = "Session") +
-      #   ggtitle(paste0('B: byperson (', input$multiple_sg_select  ," gain)" )) +
-      #   theme(text = element_text(size = 16))
-      # 
-      # plot_bysg_average_sg + plot_byperson_average_sg +
-      #   plot_annotation(title = 'Average Gain Magnitude',
-      #                   # tag_levels = c('A'),
-      #                   theme = theme(plot.title = element_text(size = 22), text = element_text(size = 14))
-      #   )
-      
-      plot_byperson_sg_session_n + plot_byperson_average_sg
-      
-    })
-    
-    
-    describe_sg_bysg <- renderText({
-      
-      bysg_reactive() %>% 
-        describe_sg(sg_data_structure = "bysg")$total_n %>% paste()
-      
-    })
-    
-    
-    describe_sg_byperson <- renderText({
-      
-      byperson_reactive() %>% 
-        describe_sg(sg_data_structure = "byperson")$total_n
-      
-    })
-      
-      
+        output$descriptives_n_summary <- renderText({
+          descriptives_byperson <-
+            describe_sg(byperson_reactive(), sg_data_structure = "byperson")
+
+          paste0(
+            "total_n: ",
+            descriptives_byperson$total_n,
+            "\n",
+            "sg_total_n: ",
+            descriptives_byperson$sg_total_n,
+            "\n",
+            "sg_n: ",
+            descriptives_byperson$sg_n,
+            "\n",
+            "sg_pct: ",
+            descriptives_byperson$sg_pct
+          )
+        })
+
+        output$descriptives_sg_summary <- renderText({
+          descriptives_byperson <-
+            describe_sg(byperson_reactive(), sg_data_structure = "byperson")
+
+          paste0(
+            "sg_multiple_n: ",
+            descriptives_byperson$sg_multiple_n,
+            "\n",
+            "sg_multiple_pct: ",
+            descriptives_byperson$sg_multiple_pct,
+            " \n \n "
+          )
+        })
+
+        output$descriptives_magnitude_summary <- renderText({
+          descriptives_byperson <-
+            describe_sg(byperson_reactive(), sg_data_structure = "byperson")
+
+          paste0(
+            "sg_magnitude_m: ",
+            descriptives_byperson$sg_magnitude_m,
+            "\n",
+            "sg_magnitude_sd: ",
+            descriptives_byperson$sg_magnitude_sd,
+            " \n \n "
+          )
+        })
+
       
 
 }
