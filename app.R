@@ -99,17 +99,17 @@ navbarPage(
                           label = "Apply criterion 3",
                           value = TRUE),
             checkboxInput("sg_crit3_adjust",
-                          label = "Adjust critical value",
+                          label = "Adjust critical value for missing data",
                           value = TRUE),
             selectInput(
               "sg_crit3_alpha",
               label = "Select alpha:",
               choices = list(
-                "0.5" = "0.5",
-                ".01" = ".01",
-                ".001" = ".001"
+                ".05" = 0.05,
+                ".01" = 0.01,
+                ".001" = 0.001
               ),
-              selected = "0.5"
+              selected = 0.05
             ),
             numericInput(
               "sg_crit3_critical_value",
@@ -128,8 +128,9 @@ navbarPage(
         selectInput(
           "data",
           label = "Select Data Set:",
-          choices = list("Example Data Set 1" = "sgdata",
-                         "Example Data Set 2" = "sgdata_xx"),
+          choices = list("Example Data Set 1" = "sgdata"
+                         #, "Example Data Set 2" = "sgdata_xx"
+                         ),
           selected = "sgdata"
         ),
         selectInput(
@@ -191,49 +192,6 @@ navbarPage(
                    tabPanel(
                      "Descriptives",
                      helpText(),
-                     fixedRow(column(12,
-                                     fixedRow(
-                                       column(
-                                         4,
-                                         h5("Criterion 1"),
-                                         verbatimTextOutput("descriptives_sg_crit1")
-                                       ),
-                                       column(
-                                         4,
-                                         h5("Criterion 2"),
-                                         verbatimTextOutput("descriptives_sg_crit2")
-                                       )
-                                       ,
-                                       column(
-                                         4,
-                                         h5("Criterion 3"),
-                                         verbatimTextOutput("descriptives_sg_crit3")
-                                       )
-                                     )
-                                     )
-                              ),
-                     hr(),
-                     fixedRow(column(12,
-                                     fixedRow(
-                                       column(
-                                         4,
-                                         h5("Numbers"),
-                                         verbatimTextOutput("descriptives_n_summary")
-                                       ),
-                                       column(
-                                         4,
-                                         h5("Sudden Gains"),
-                                         verbatimTextOutput("descriptives_sg_summary")
-                                       ),
-                                       column(
-                                         4,
-                                         h5("Magnitude"),
-                                         verbatimTextOutput("descriptives_magnitude_summary")
-                                       )
-                                     )
-                                     )
-                              ),
-                     hr(),
                      fixedRow(
                        column(
                          12,
@@ -245,8 +203,63 @@ navbarPage(
                                           "byperson" = "byperson"),
                            selected = "bysg"
                          ),
-                         helpText(),
-                         plotOutput("plot_sg_desc"),
+                         # hr(),
+                     fixedRow(column(12,
+                                     fixedRow(
+                                       column(
+                                         6,
+                                         h4("Sudden Gains Criteria:"),
+                                         verbatimTextOutput("descriptives_sg_crit123")
+                                       ),
+                                       column(
+                                         6,
+                                         h4("Sudden Gains Descriptives"),
+                                         verbatimTextOutput("descriptives_sg")
+                                       )
+                                     )
+                                     )
+                              ),
+                     # hr(),
+                     # fixedRow(column(12,
+                     #                 fixedRow(
+                     #                   column(
+                     #                     4,
+                     #                     h5("Numbers"),
+                     #                     verbatimTextOutput("descriptives_n_summary")
+                     #                   ),
+                     #                   column(
+                     #                     4,
+                     #                     h5("Sudden Gains"),
+                     #                     verbatimTextOutput("descriptives_sg_summary")
+                     #                   ),
+                     #                   column(
+                     #                     4,
+                     #                     h5("Magnitude"),
+                     #                     verbatimTextOutput("descriptives_magnitude_summary")
+                     #                   )
+                     #                 )
+                     #                 )
+                     #          ),
+                     hr(),
+
+                         
+                         fixedRow(column(12,
+                                         fixedRow(
+                                           column(
+                                             6,
+                                             # h5("Numbers"),
+                                             plotOutput("plot_sg_session_n")
+                                           ),
+                                           column(
+                                             6,
+                                             # h5("Sudden Gains"),
+                                             plotOutput("plot_average_sg")
+                                           )
+                                         )
+                         )
+                         ),
+                         
+                         
                          helpText(
                            "Note: To change the selected gain for the byperson data set, go to the 'Create byperson Data Set' panel at the top."
                          )
@@ -421,11 +434,11 @@ server <- function(input, output, session) {
         session,
         "sg_crit3_alpha",
         choices = list(
-          "0.5" = "0.5",
-          ".01" = ".01",
-          ".001" = ".001"
+          ".05" = 0.05,
+          ".01" = 0.01,
+          ".001" = 0.001
         ),
-        selected = "0.5"
+        selected = 0.05
       )
     } else if (input$sg_crit3_adjust == FALSE) {
       updateNumericInput(session,
@@ -449,9 +462,9 @@ server <- function(input, output, session) {
       sg_crit1_cutoff = input$sg_crit1_cutoff,
       sg_crit2_pct = (input$sg_crit2_pct / 100),
       sg_crit3 = input$sg_crit3,
-      # sg_crit3_alpha = input$sg_crit3_alpha,
+      sg_crit3_alpha = as.numeric(input$sg_crit3_alpha),
       sg_crit3_adjust = input$sg_crit3_adjust,
-      # sg_crit3_critical_value = input$sg_crit3_critical_value,
+      sg_crit3_critical_value = input$sg_crit3_critical_value,
       id_var_name = "id",
       tx_start_var_name = input$sg_var_list[1],
       tx_end_var_name = last(input$sg_var_list),
@@ -470,9 +483,9 @@ server <- function(input, output, session) {
       sg_crit1_cutoff = input$sg_crit1_cutoff,
       sg_crit2_pct = (input$sg_crit2_pct / 100),
       sg_crit3 = input$sg_crit3,
-      # sg_crit3_alpha = input$sg_crit3_alpha,
+      sg_crit3_alpha = as.numeric(input$sg_crit3_alpha),
       sg_crit3_adjust = input$sg_crit3_adjust,
-      # sg_crit3_critical_value = input$sg_crit3_critical_value,
+      sg_crit3_critical_value = input$sg_crit3_critical_value,
       id_var_name = "id",
       tx_start_var_name = input$sg_var_list[1],
       tx_end_var_name = last(input$sg_var_list),
@@ -526,29 +539,30 @@ server <- function(input, output, session) {
     )
   
   #  plot ----
-  output$plot_sg_desc <- renderPlot({
-    y_limit <- bysg_reactive() %>%
-      select(sg_session_n) %>%
-      group_by(sg_session_n) %>%
-      count() %>%
-      drop_na() %>%
-      max(.$n)
+  output$plot_average_sg <- renderPlot({
+    
+    # y_limit <- bysg_reactive() %>%
+    #   select(sg_session_n) %>%
+    #   group_by(sg_session_n) %>%
+    #   count() %>%
+    #   drop_na() %>%
+    #   max(.$n)
     
     if (input$describe_bysg_or_byperson == "bysg") {
-      plot_bysg_sg_session_n <- bysg_reactive() %>%
-        select(sg_session_n) %>%
-        ggplot(aes(sg_session_n)) +
-        geom_bar() +
-        labs(x = "Pregain Time Point", y = "Count", fill = "") +
-        scale_x_continuous(breaks = seq(2, (length(
-          input$sg_var_list
-        ) - 2), by = 1)) +
-        scale_y_continuous(breaks = seq(0, 35, by = 2)) +
-        coord_cartesian(ylim = c(0, y_limit), xlim = c(2, (length(
-          input$sg_var_list
-        ) - 2))) +
-        ggtitle('Fig. A.1: bysg (all gains)') +
-        theme_gray()
+      # plot_bysg_sg_session_n <- bysg_reactive() %>%
+      #   select(sg_session_n) %>%
+      #   ggplot(aes(sg_session_n)) +
+      #   geom_bar() +
+      #   labs(x = "Pregain Time Point", y = "Count", fill = "") +
+      #   scale_x_continuous(breaks = seq(2, (length(
+      #     input$sg_var_list
+      #   ) - 2), by = 1)) +
+      #   scale_y_continuous(breaks = seq(0, 35, by = 2)) +
+      #   coord_cartesian(ylim = c(0, y_limit), xlim = c(2, (length(
+      #     input$sg_var_list
+      #   ) - 2))) +
+      #   ggtitle('Fig. A.1: bysg (all gains)') +
+      #   theme_gray()
       
       plot_bysg_average_sg <- plot_sg(
         data = bysg_reactive(),
@@ -567,26 +581,28 @@ server <- function(input, output, session) {
         xlab = "Session"
       ) +
         ggtitle('Fig. B.1: bysg (all gains)') +
-        theme_gray()
-      
-      plot_bysg_sg_session_n + plot_bysg_average_sg &
+        theme_gray()+
         theme(text = element_text(size = 18))
       
+      plot_bysg_average_sg
+      # plot_bysg_sg_session_n + plot_bysg_average_sg &
+      #   theme(text = element_text(size = 18))
+      
     } else if (input$describe_bysg_or_byperson == "byperson") {
-      plot_byperson_sg_session_n <- byperson_reactive() %>%
-        select(sg_session_n) %>%
-        ggplot(aes(sg_session_n)) +
-        geom_bar() +
-        labs(x = "Pregain Time Point", y = "Count", fill = "") +
-        scale_x_continuous(breaks = seq(2, (length(
-          input$sg_var_list
-        ) - 2), by = 1)) +
-        scale_y_continuous(breaks = seq(0, 35, by = 2)) +
-        coord_cartesian(ylim = c(0, y_limit), xlim = c(2, (length(
-          input$sg_var_list
-        ) - 2))) +
-        ggtitle(paste0('Fig. A.2: byperson (', input$multiple_sg_select  , " gain)")) +
-        theme_gray()
+      # plot_byperson_sg_session_n <- byperson_reactive() %>%
+      #   select(sg_session_n) %>%
+      #   ggplot(aes(sg_session_n)) +
+      #   geom_bar() +
+      #   labs(x = "Pregain Time Point", y = "Count", fill = "") +
+      #   scale_x_continuous(breaks = seq(2, (length(
+      #     input$sg_var_list
+      #   ) - 2), by = 1)) +
+      #   scale_y_continuous(breaks = seq(0, 35, by = 2)) +
+      #   coord_cartesian(ylim = c(0, y_limit), xlim = c(2, (length(
+      #     input$sg_var_list
+      #   ) - 2))) +
+      #   ggtitle(paste0('Fig. A.2: byperson (', input$multiple_sg_select  , " gain)")) +
+      #   theme_gray()
       
       plot_byperson_average_sg <-
         plot_sg(
@@ -606,12 +622,108 @@ server <- function(input, output, session) {
           xlab = "Session"
         ) +
         ggtitle(paste0('Fig. B.2: byperson (', input$multiple_sg_select  , " gain)")) +
-        theme_gray()
-      
-      plot_byperson_sg_session_n + plot_byperson_average_sg  &
+        theme_gray()+
         theme(text = element_text(size = 18))
+      
+      plot_byperson_average_sg
+      # plot_byperson_sg_session_n + plot_byperson_average_sg  &
+      #   theme(text = element_text(size = 18))
     }
   })
+  
+  #  plot ----
+  output$plot_sg_session_n <- renderPlot({
+    
+    y_limit <- bysg_reactive() %>%
+      select(sg_session_n) %>%
+      group_by(sg_session_n) %>%
+      count() %>%
+      drop_na() %>%
+      max(.$n)
+    
+    if (input$describe_bysg_or_byperson == "bysg") {
+      plot_bysg_sg_session_n <- bysg_reactive() %>%
+        select(sg_session_n) %>%
+        ggplot(aes(sg_session_n)) +
+        geom_histogram(binwidth = .5) +
+        labs(x = "Pregain Time Point", y = "Count", fill = "") +
+        scale_x_continuous(breaks = seq(2, (length(
+          input$sg_var_list
+        ) - 2), by = 1)) +
+        scale_y_continuous(breaks = seq(0, 35, by = 2)) +
+        coord_cartesian(ylim = c(0, y_limit), xlim = c(2, (length(
+          input$sg_var_list
+        ) - 2))) +
+        ggtitle('Fig. A.1: bysg (all gains)') +
+        theme_gray()+
+        theme(text = element_text(size = 18))
+      
+      # plot_bysg_average_sg <- plot_sg(
+      #   data = bysg_reactive(),
+      #   id_var_name = "id",
+      #   tx_start_var_name = input$sg_var_list[1],
+      #   tx_end_var_name = last(input$sg_var_list),
+      #   sg_pre_post_var_list = c(
+      #     "sg_bdi_2n",
+      #     "sg_bdi_1n",
+      #     "sg_bdi_n",
+      #     "sg_bdi_n1",
+      #     "sg_bdi_n2",
+      #     "sg_bdi_n3"
+      #   ),
+      #   ylab = "BDI",
+      #   xlab = "Session"
+      # ) +
+      #   ggtitle('Fig. B.1: bysg (all gains)') +
+      #   theme_gray()
+      
+      plot_bysg_sg_session_n
+      # plot_bysg_sg_session_n + plot_bysg_average_sg &
+      #   theme(text = element_text(size = 18))
+      
+    } else if (input$describe_bysg_or_byperson == "byperson") {
+      plot_byperson_sg_session_n <- byperson_reactive() %>%
+        select(sg_session_n) %>%
+        ggplot(aes(sg_session_n)) +
+        geom_histogram(binwidth = .5) +
+        labs(x = "Pregain Time Point", y = "Count", fill = "") +
+        scale_x_continuous(breaks = seq(2, (length(
+          input$sg_var_list
+        ) - 2), by = 1)) +
+        scale_y_continuous(breaks = seq(0, 35, by = 2)) +
+        coord_cartesian(ylim = c(0, y_limit), xlim = c(2, (length(
+          input$sg_var_list
+        ) - 2))) +
+        ggtitle(paste0('Fig. A.2: byperson (', input$multiple_sg_select  , " gain)")) +
+        theme_gray() +
+        theme(text = element_text(size = 18))
+      
+      # plot_byperson_average_sg <-
+      #   plot_sg(
+      #     data = byperson_reactive(),
+      #     id_var_name = "id",
+      #     tx_start_var_name = input$sg_var_list[1],
+      #     tx_end_var_name = last(input$sg_var_list),
+      #     sg_pre_post_var_list = c(
+      #       "sg_bdi_2n",
+      #       "sg_bdi_1n",
+      #       "sg_bdi_n",
+      #       "sg_bdi_n1",
+      #       "sg_bdi_n2",
+      #       "sg_bdi_n3"
+      #     ),
+      #     ylab = "BDI",
+      #     xlab = "Session"
+      #   ) +
+      #   ggtitle(paste0('Fig. B.2: byperson (', input$multiple_sg_select  , " gain)")) +
+      #   theme_gray()
+      
+      plot_byperson_sg_session_n
+      # plot_byperson_sg_session_n + plot_byperson_average_sg  &
+      #   theme(text = element_text(size = 18))
+    }
+  })
+  
   
   output$plot_sg_longitudinal <-   renderPlot({
     plot_sg_trajectories(
@@ -637,91 +749,85 @@ server <- function(input, output, session) {
       ggtitle(paste0(
         "Fig. C: Trajectories of BDI scores for a selection of participants"
       )) +
-      theme(text = element_text(size = 18))
+      theme(text = element_text(size = 22))
   })
   
   
-  output$descriptives_sg_crit1 <- renderText({
+  output$descriptives_sg_crit123 <- renderText({
     paste0("Crit 1: ",
            input$sg_crit1,
-           "\n",
-           "Crit 1, Cut-off: ",
+           ", Cut-off: ",
            input$sg_crit1_cutoff,
-           " \n \n ")
-  })
-  
-  output$descriptives_sg_crit2 <- renderText({
-    paste0("Crit 2: ",
-           input$sg_crit2,
            "\n",
-           "Crit 2, Pct: ",
+           "Crit 2: ",
+           input$sg_crit2,
+           ", Pct: ",
            input$sg_crit2_pct,
            "%",
-           " \n \n ")
+           "\n",
+           "Crit 3: ",
+           input$sg_crit3,
+           # ", Adjust Critical Value: ",
+           # input$sg_crit3_adjust,
+           # "\n",
+           ", Crit 3, Critical Value(s): ",
+           if (input$sg_crit3_adjust == FALSE) {
+             
+             input$sg_crit3_critical_value
+             
+           } else if (input$sg_crit3_adjust == TRUE) {
+             
+             sg_crit3_critical_value_complete <- round(base::abs(stats::qt(p = (as.numeric(input$sg_crit3_alpha) / 2), df = (6 - 2))), 3)
+             sg_crit3_critical_value_1missing <- round(base::abs(stats::qt(p = (as.numeric(input$sg_crit3_alpha) / 2), df = (5 - 2))), 3)
+             sg_crit3_critical_value_2missing <- round(base::abs(stats::qt(p = (as.numeric(input$sg_crit3_alpha) / 2), df = (4 - 2))), 3)
+             
+             paste(sg_crit3_critical_value_complete, sg_crit3_critical_value_1missing, sg_crit3_critical_value_2missing, sep = ", ")
+             
+                        }
+           
+           )
   })
   
-  output$descriptives_sg_crit3 <- renderText({
-    paste0(
-      "Crit 3: ",
-      input$sg_crit3,
-      "\n",
-      "Crit 3, Adjusted: ",
-      input$sg_crit3_adjust,
-      "\n",
-      "Crit 3, Alpha: ",
-      input$sg_crit3_alpha,
-      "\n",
-      "Crit 3, Critical Value: ",
-      input$sg_crit3_critical_value
-    )
-  })
-  
-  output$descriptives_n_summary <- renderText({
+  output$descriptives_sg <- renderText({
     descriptives_byperson <-
       describe_sg(byperson_reactive(), sg_data_structure = "byperson")
     
+    descriptives_bysg <-
+      describe_sg(bysg_reactive(), sg_data_structure = "bysg")
+    
     paste0(
-      "total_n: ",
-      descriptives_byperson$total_n,
-      "\n",
-      "sg_total_n: ",
+      "Total N = ",
       descriptives_byperson$sg_total_n,
-      "\n",
-      "sg_n: ",
+      " SGs experienced by N = ",
       descriptives_byperson$sg_n,
+      " (",
+      descriptives_byperson$sg_pct,
+      "%) participants",
       "\n",
-      "sg_pct: ",
-      descriptives_byperson$sg_pct
-    )
-  })
-  
-  output$descriptives_sg_summary <- renderText({
-    descriptives_byperson <-
-      describe_sg(byperson_reactive(), sg_data_structure = "byperson")
-    
-    paste0(
-      "sg_multiple_n: ",
+      "N = ",
       descriptives_byperson$sg_multiple_n,
-      "\n",
-      "sg_multiple_pct: ",
+      " (",
       descriptives_byperson$sg_multiple_pct,
-      " \n \n "
+      "%) participants with multiple SGs",
+      "\n",
+      "Average SG magnitude, M = ",
+      
+      if (input$describe_bysg_or_byperson == "bysg") {
+        descriptives_byperson$sg_magnitude_m
+      } else if (input$describe_bysg_or_byperson == "byperson") {
+        descriptives_bysg$sg_magnitude_m
+      },
+      
+      ", SD = ",
+      
+      if (input$describe_bysg_or_byperson == "bysg") {
+        descriptives_byperson$sg_magnitude_sd
+      } else if (input$describe_bysg_or_byperson == "byperson") {
+        descriptives_bysg$sg_magnitude_sd
+      }
     )
   })
   
-  output$descriptives_magnitude_summary <- renderText({
-    descriptives_byperson <-
-      describe_sg(byperson_reactive(), sg_data_structure = "byperson")
-    
-    paste0(
-      "sg_magnitude_m: ",
-      descriptives_byperson$sg_magnitude_m,
-      "\n",
-      "sg_magnitude_sd: ",
-      descriptives_byperson$sg_magnitude_sd,
-      " \n \n "
-    )
-  })
   
 }
 # Run the application
