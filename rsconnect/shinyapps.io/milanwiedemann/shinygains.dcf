@@ -5,9 +5,9 @@ account: milanwiedemann
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 1655055
-bundleId: 2734274
+bundleId: 2742171
 url: https://milanwiedemann.shinyapps.io/shinygains/
-when: 1579211551.30497
+when: 1579557832.90967
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: app_bug_somewhere.R|README.md|scratchpad.R
+ignoredFiles: README.md|scratchpad.R
