@@ -19,7 +19,6 @@ library(readr)
 library(DT)
 options(htmlwidgets.TOJSON_ARGS = list(na = 'string'))
 
-
 # Define UI for application that draws a histogram
 ui <- tagList(tags$head(
   HTML(
@@ -48,21 +47,19 @@ navbarPage(
       width = 3,
       helpText(),
       h4("Select Criteria:"),
-      wellPanel(
-        selectInput(
-          "sgsl",
-          label = h5("Identify:"),
-          choices = list("Sudden Gains" = "sg",
-                         "Sudden Losses" = "sl"),
-          selected = "sg"
-        )
-      ),
+      wellPanel(selectInput(
+        "sgsl",
+        label = h5("Identify:"),
+        choices = list("Sudden Gains" = "sg",
+                       "Sudden Losses" = "sl"),
+        selected = "sg"
+      )),
       tabsetPanel(
         tabPanel(
           "Crit 1",
           helpText(),
           wellPanel(
-            checkboxInput("sg_crit1", 
+            checkboxInput("sg_crit1",
                           label = "Apply Criterion 1",
                           value = TRUE),
             numericInput(
@@ -91,7 +88,9 @@ navbarPage(
               value = 25,
               step = 1
             ),
-            helpText("Note: Percentage change threshold to be used for the second sudden gains criterion.")
+            helpText(
+              "Note: Percentage change threshold to be used for the second sudden gains criterion."
+            )
           )
         ),
         tabPanel(
@@ -120,13 +119,14 @@ navbarPage(
               value = NA,
               step = .1
             ),
-            helpText("Noite: See the 'Recerences' tab at the top for papers discussing the third criterion."
-              # a("semPlot: Path Diagrams and Visual Analysis of Various SEM Packages' Output. R package version 1.1.2.", 
+            helpText(
+              "Noite: See the 'Recerences' tab at the top for papers discussing the third criterion."
+              # a("semPlot: Path Diagrams and Visual Analysis of Various SEM Packages' Output. R package version 1.1.2.",
               #          href="https://CRAN.R-project.org/package=semPlot",
               #          target="_blank"
               #          )
             )
-
+            
           )
         )
       ),
@@ -137,227 +137,382 @@ navbarPage(
         selectInput(
           "data",
           label = h5("Select Data Set:"),
-          choices = list("Example Data Set 1" = "sgdata",
-                         "Example Data Set 2 (No NAs)" = "sgdata_no_na"),
-                         selected = "sgdata"
+          choices = list(
+            "Example Data Set 1" = "sgdata",
+            "Example Data Set 2 (No NAs)" = "sgdata_no_na"
           ),
-          selectInput(
-            "sg_var_list",
-            h5("Select Repeated Measures:"),
-            choices = c(
-              "bdi_s1",
-              "bdi_s2",
-              "bdi_s3",
-              "bdi_s4",
-              "bdi_s5",
-              "bdi_s6",
-              "bdi_s7",
-              "bdi_s8",
-              "bdi_s9",
-              "bdi_s10",
-              "bdi_s11",
-              "bdi_s12"
-            ),
-            selected = c(
-              "bdi_s1",
-              "bdi_s2",
-              "bdi_s3",
-              "bdi_s4",
-              "bdi_s5",
-              "bdi_s6",
-              "bdi_s7",
-              "bdi_s8",
-              "bdi_s9",
-              "bdi_s10",
-              "bdi_s11",
-              "bdi_s12"
-            ),
-            multiple = TRUE
+          selected = "sgdata"
+        ),
+        selectInput(
+          "sg_var_list",
+          h5("Select Repeated Measures:"),
+          choices = c(
+            "bdi_s1",
+            "bdi_s2",
+            "bdi_s3",
+            "bdi_s4",
+            "bdi_s5",
+            "bdi_s6",
+            "bdi_s7",
+            "bdi_s8",
+            "bdi_s9",
+            "bdi_s10",
+            "bdi_s11",
+            "bdi_s12"
           ),
-          helpText(
-            "Select variables in the order that reflects the time points that were measured."
+          selected = c(
+            "bdi_s1",
+            "bdi_s2",
+            "bdi_s3",
+            "bdi_s4",
+            "bdi_s5",
+            "bdi_s6",
+            "bdi_s7",
+            "bdi_s8",
+            "bdi_s9",
+            "bdi_s10",
+            "bdi_s11",
+            "bdi_s12"
           ),
-          sliderInput(
-            "na_pct",
-            h5("Missingness in % in Repeated Measures:"),
-            min = 0,
-            max = 100,
-            value = 0,
-            step = 1
-          ),
-          helpText(
-            "Note: Some values are already missing in the original data set, SAY sth about Example data set 1 vs 2, so this is not super super accurate. Say something about random missing values here."
-          )
-        )
-      ),
-      column(
-        9,
-        h4("Results:"),
-        tabsetPanel(
-          tabPanel("Summary",
-                   helpText(),
-                   tabsetPanel(
-                     tabPanel("Descriptives",
-                              helpText(),
-                              fixedRow(
-                                column(
-                                  12,
-                                  helpText(),
-                                  selectInput(
-                                    "describe_bysg_or_byperson",
-                                    label = h5("Specify which data set to describe:"),
-                                    choices = list("bysg" = "bysg",
-                                                   "byperson" = "byperson"),
-                                    selected = "bysg"
-                                  ),
-                                  # hr(),
-                                  fixedRow(column(12,
-                                                  fixedRow(
-                                                    column(
-                                                      6,
-                                                      h5("Sudden Gains Criteria:"),
-                                                      verbatimTextOutput("descriptives_sg_crit123")
-                                                    ),
-                                                    column(
-                                                      6,
-                                                      h5("Sudden Gains Descriptives:"),
-                                                      verbatimTextOutput("descriptives_sg")
-                                                    )
-                                                  )
-                                                  )
-                                           ),
-                                  hr(),
-                                  
-                                  
-                                  fixedRow(column(12,
-                                                  fixedRow(
-                                                    column(6,
-                                                           h5("Pregain Session Number:"),
-                                                           plotOutput("plot_sg_session_n")
-                                                           ),
-                                                    column(6,
-                                                           h5("Average Sudden Gain Magnitude:"),
-                                                           plotOutput("plot_average_sg")
-                                                           )
-                                                  )
-                                                  )
-                                           ),
-                                  
-                                  
-                                  helpText(
-                                    "Note: To change the selected gain for the byperson data set, go to the 'Create byperson Data Set' panel at the top."
-                                  )
-                                )
-                              )
-                              ),
-                     tabPanel("Longitudinal Plot",
-                              helpText(),
-                              fixedRow(
-                                column(
-                                  10,
-                                  selectInput(
-                                    "select_ids_list",
-                                    h5("Select IDs:"),
-                                    choices = c(
-                                      "1",
-                                      "2",
-                                      "3",
-                                      "4",
-                                      "5",
-                                      "6",
-                                      "7",
-                                      "8",
-                                      "9",
-                                      "10",
-                                      "11",
-                                      "12",
-                                      "13",
-                                      "14",
-                                      "15",
-                                      "16",
-                                      "17",
-                                      "18",
-                                      "19",
-                                      "20",
-                                      "21",
-                                      "22",
-                                      "23",
-                                      "24",
-                                      "25",
-                                      "26",
-                                      "27",
-                                      "28",
-                                      "29",
-                                      "30",
-                                      "31",
-                                      "32",
-                                      "33",
-                                      "34",
-                                      "35",
-                                      "36",
-                                      "37",
-                                      "38",
-                                      "39",
-                                      "40",
-                                      "41",
-                                      "42",
-                                      "43"
-                                    ),
-                                    selected = c("2", "4", "5", "9"),
-                                    multiple = TRUE
-                                  ),
-                                  hr(),
-                                  h5("Trajectories of BDI scores for a selection of participants:"),
-                                  plotOutput("plot_sg_longitudinal")
-                                )
-                              )
-                              )
-                     )
-                   ),
-          tabPanel(
-            "Selected Data Set",
-            helpText(),
-            DT::dataTableOutput("sgdata_table")
-            # , helpText("Note: xxx.")
-          ),
-          tabPanel(
-            HTML("Create <I>bysg</I> Data Set"),
-            helpText(),
-            DT::dataTableOutput("bysg_table")
-          ),
-          tabPanel(
-            HTML("Create <I>byperson</I> Data Set"),
-            helpText(),
-            selectInput(
-              "multiple_sg_select",
-              label = h5("Specify which sudden gain/loss to select:"),
-              choices = list(
-                "first" = "first",
-                "last" = "last",
-                "smallest" = "smallest",
-                "largest" = "largest"
-              ),
-              selected = "first"
-            ),
-            helpText(),
-            DT::dataTableOutput("byperson_table")
-          )
+          multiple = TRUE
+        ),
+        helpText(
+          "Select variables in the order that reflects the time points that were measured."
+        ),
+        sliderInput(
+          "na_pct",
+          h5("Missingness in % in Repeated Measures:"),
+          min = 0,
+          max = 100,
+          value = 0,
+          step = 1
+        ),
+        helpText(
+          "Note: Some values are already missing in the original data set, SAY sth about Example data set 1 vs 2, so this is not super super accurate. Say something about random missing values here."
         )
       )
     ),
-    tabPanel("Check Interval", ),
-    tabPanel("References", )
-  ))
+    column(
+      9,
+      h4("Results:"),
+      tabsetPanel(
+        tabPanel("Summary",
+                 helpText(),
+                 tabsetPanel(
+                   tabPanel("Descriptives",
+                            helpText(),
+                            fixedRow(
+                              column(
+                                12,
+                                helpText(),
+                                selectInput(
+                                  "describe_bysg_or_byperson",
+                                  label = h5("Specify which data set to describe:"),
+                                  choices = list("bysg" = "bysg",
+                                                 "byperson" = "byperson"),
+                                  selected = "bysg"
+                                ),
+                                # hr(),
+                                fixedRow(column(12,
+                                                fixedRow(
+                                                  column(
+                                                    6,
+                                                    h5("Sudden Gains Criteria:"),
+                                                    verbatimTextOutput("descriptives_sg_crit123")
+                                                  ),
+                                                  column(
+                                                    6,
+                                                    h5("Sudden Gains Descriptives:"),
+                                                    verbatimTextOutput("descriptives_sg")
+                                                  )
+                                                ))),
+                                hr(),
+                                
+                                
+                                fixedRow(column(12,
+                                                fixedRow(
+                                                  column(
+                                                    6,
+                                                    h5("Pregain Session Number:"),
+                                                    plotOutput("plot_sg_session_n")
+                                                  ),
+                                                  column(
+                                                    6,
+                                                    h5("Average Sudden Gain Magnitude:"),
+                                                    plotOutput("plot_average_sg")
+                                                  )
+                                                ))),
+                                
+                                
+                                helpText(
+                                  "Note: To change the selected gain for the byperson data set, go to the 'Create byperson Data Set' panel at the top."
+                                )
+                              )
+                            )),
+                   tabPanel("Longitudinal Plot",
+                            helpText(),
+                            fixedRow(
+                              column(
+                                10,
+                                selectInput(
+                                  "select_ids_list",
+                                  h5("Select IDs:"),
+                                  choices = c(
+                                    "1",
+                                    "2",
+                                    "3",
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "7",
+                                    "8",
+                                    "9",
+                                    "10",
+                                    "11",
+                                    "12",
+                                    "13",
+                                    "14",
+                                    "15",
+                                    "16",
+                                    "17",
+                                    "18",
+                                    "19",
+                                    "20",
+                                    "21",
+                                    "22",
+                                    "23",
+                                    "24",
+                                    "25",
+                                    "26",
+                                    "27",
+                                    "28",
+                                    "29",
+                                    "30",
+                                    "31",
+                                    "32",
+                                    "33",
+                                    "34",
+                                    "35",
+                                    "36",
+                                    "37",
+                                    "38",
+                                    "39",
+                                    "40",
+                                    "41",
+                                    "42",
+                                    "43"
+                                  ),
+                                  selected = c("2", "4", "5", "9"),
+                                  multiple = TRUE
+                                ),
+                                hr(),
+                                h5("Trajectories of BDI scores for a selection of participants:"),
+                                plotOutput("plot_sg_longitudinal")
+                              )
+                            ))
+                 )),
+        tabPanel(
+          "Selected Data Set",
+          helpText(),
+          DT::dataTableOutput("sgdata_table")
+          # , helpText("Note: xxx.")
+        ),
+        tabPanel(
+          HTML("Create <I>bysg</I> Data Set"),
+          helpText(),
+          DT::dataTableOutput("bysg_table")
+        ),
+        tabPanel(
+          HTML("Create <I>byperson</I> Data Set"),
+          helpText(),
+          selectInput(
+            "multiple_sg_select",
+            label = h5("Specify which sudden gain/loss to select:"),
+            choices = list(
+              "first" = "first",
+              "last" = "last",
+              "smallest" = "smallest",
+              "largest" = "largest"
+            ),
+            selected = "first"
+          ),
+          helpText(),
+          DT::dataTableOutput("byperson_table")
+        )
+      )
+    )
+  ),
+  tabPanel(
+    "Check Interval",
+    column(
+      width = 3,
+      helpText(),
+      h4("Select Criteria:"),
+      wellPanel(
+        selectInput(
+          "sgsl_check",
+          label = h5("Identify:"),
+          choices = list("Sudden Gains" = "sg",
+                         "Sudden Losses" = "sl"),
+          selected = "sg"
+        )
+      ),
+      tabsetPanel(
+        tabPanel(
+          "Crit 1",
+          helpText(),
+          wellPanel(
+            checkboxInput("sg_crit1_check",
+                          label = "Apply Criterion 1",
+                          value = TRUE),
+            numericInput(
+              "sg_crit1_cutoff_check",
+              h5("Cut-off value:"),
+              value = 7,
+              step = .1,
+            ),
+            helpText(
+              "Note: The cut-off value for Crit 1 needs to be positive to identify sudden gains and negative to identify sudden losses."
+            )
+          )
+        ),
+        tabPanel(
+          "Crit 2",
+          helpText(),
+          wellPanel(
+            checkboxInput("sg_crit2_check",
+                          label = "Apply Criterion 2",
+                          value = TRUE),
+            sliderInput(
+              "sg_crit2_pct_check",
+              "Percentage:",
+              min = 0,
+              max = 100,
+              value = 25,
+              step = 1
+            ),
+            helpText(
+              "Note: Percentage change threshold to be used for the second sudden gains criterion."
+            )
+          )
+        ),
+        tabPanel(
+          "Crit 3",
+          helpText(),
+          wellPanel(
+            checkboxInput("sg_crit3_check",
+                          label = "Apply criterion 3",
+                          value = TRUE),
+            checkboxInput("sg_crit3_adjust_check",
+                          label = "Adjust critical value for missing data",
+                          value = TRUE),
+            selectInput(
+              "sg_crit3_alpha_check",
+              label = h5("Select alpha:"),
+              choices = list(
+                ".05" = 0.05,
+                ".01" = 0.01,
+                ".001" = 0.001
+              ),
+              selected = 0.05
+            ),
+            numericInput(
+              "sg_crit3_critical_value_check",
+              "Critical value:",
+              value = NA,
+              step = .1
+            ),
+            helpText(
+              "Noite: See the 'Recerences' tab at the top for papers discussing the third criterion."
+              # a("semPlot: Path Diagrams and Visual Analysis of Various SEM Packages' Output. R package version 1.1.2.",
+              #          href="https://CRAN.R-project.org/package=semPlot",
+              #          target="_blank"
+              #          )
+            )
+            
+          )
+        )
+      ),
+      hr(),
+      h4("Enter Values:"),
+      wellPanel(
+        h5("Pregain Values:"),
+        fixedRow(
+          column(4,
+                 numericInput(
+                   "sg_2n_check",
+                   h5("N-2:"),
+                   value = 21,
+                   step = 1
+                 )),
+          column(4,
+                 numericInput(
+                   "sg_1n_check",
+                   h5("N-1:"),
+                   value = 18,
+                   step = 1
+                 )),
+          column(4,
+                 numericInput(
+                   "sg_n_check",
+                   h5("N:"),
+                   value = 20,
+                   step = 1
+                 ))
+        ),
+        h5("Postgain Values:"),
+        fixedRow(
+          column(4,
+                 numericInput(
+                   "sg_n1_check",
+                   h5("N+1:"),
+                   value = 11,
+                   step = 1
+                 )),
+          column(4,
+                 numericInput(
+                   "sg_n2_check",
+                   h5("N+2:"),
+                   value = 13,
+                   step = 1
+                 )),
+          column(4,
+                 numericInput(
+                   "sg_n3_check",
+                   h5("N+3:"),
+                   value = 8,
+                   step = 1
+                 ))
+        ),
+        helpText(
+          "Note: The cut-off value for Crit 1 needs to be positive to identify sudden gains and negative to identify sudden losses."
+        )
+      )
+    ),
+    column(9,
+           h4("Results:"),
+           helpText(),
+           fixedRow(
+             column(6,
+                    h5("Summary:"),
+                    verbatimTextOutput("check_interval_txt")),
+             column(
+               6,
+               h5("Visualiation of Values:"),
+               plotOutput("plot_sg_average_check")
+             )
+           ))
+  ),
+  tabPanel("References", )
+))
 
-# Define server logic required to draw a histogram
+# Define server ----
 server <- function(input, output, session) {
   # Select variables -----
   
   # Create dataset with option to add missing values
   sgdata_reactive <- reactive({
-    
     if (input$data == "sgdata_no_na") {
-      
       sgdata_temp <- readr::read_csv("data/sgdata_bdi_no_na.csv")
       
     } else if (input$data == "sgdata") {
@@ -439,7 +594,6 @@ server <- function(input, output, session) {
   
   # Create bysg data
   bysg_reactive <- reactive({
-    
     if (input$sg_crit1 == TRUE) {
       sg_crit1_cutoff <- input$sg_crit1_cutoff
     } else if (input$sg_crit1 == FALSE) {
@@ -467,12 +621,10 @@ server <- function(input, output, session) {
       sg_var_list = input$sg_var_list,
       sg_measure_name = "bdi"
     )
-    
   })
   
   # Create bysg data
   byperson_reactive <- reactive({
-    
     if (input$sg_crit1 == TRUE) {
       sg_crit1_cutoff <- input$sg_crit1_cutoff
     } else if (input$sg_crit1 == FALSE) {
@@ -505,24 +657,25 @@ server <- function(input, output, session) {
   
   #     # Create bysg data table
   output$bysg_table <-
-    DT::renderDataTable(DT::datatable(
-      bysg_reactive(),
-      caption = paste0(
-        "Table: Data set with one row for each sudden gain (n = ",
-        nrow(bysg_reactive()),
-        ") experienced by a total number of n = ",
-        length(unique(bysg_reactive()$id)),
-        " participants."
-      ),
-      options = list(
-        pageLength = 10,
-        scrollX = TRUE,
-        fixedColumns = TRUE,
-        searching = FALSE
-      ),
-      rownames = FALSE
-    ) %>% 
-      formatRound('sg_change_proportion', 2)
+    DT::renderDataTable(
+      DT::datatable(
+        bysg_reactive(),
+        caption = paste0(
+          "Table: Data set with one row for each sudden gain (n = ",
+          nrow(bysg_reactive()),
+          ") experienced by a total number of n = ",
+          length(unique(bysg_reactive()$id)),
+          " participants."
+        ),
+        options = list(
+          pageLength = 10,
+          scrollX = TRUE,
+          fixedColumns = TRUE,
+          searching = FALSE
+        ),
+        rownames = FALSE
+      ) %>%
+        formatRound('sg_change_proportion', 2)
     )
   
   # Create bysg data table
@@ -546,7 +699,7 @@ server <- function(input, output, session) {
           searching = FALSE
         ),
         rownames = FALSE
-      )%>% 
+      ) %>%
         formatRound('sg_change_proportion', 2)
     )
   
@@ -592,34 +745,22 @@ server <- function(input, output, session) {
         xlab = "Session"
       ) +
         labs(title = paste0("Source: Based on 'bysg' data set (all gains)")) +
-                theme_gray() +
+        theme_gray() +
         theme(text = element_text(size = 18)) +
-        theme(plot.title=element_text(size= 12, face = "plain", colour = "grey40"))
-        
+        theme(plot.title = element_text(
+          size = 12,
+          face = "plain",
+          colour = "grey40"
+        ))
       
       plot_bysg_average_sg
-      # plot_bysg_sg_session_n + plot_bysg_average_sg &
-      #   theme(text = element_text(size = 18))
       
     } else if (input$describe_bysg_or_byperson == "byperson") {
-      # plot_byperson_sg_session_n <- byperson_reactive() %>%
-      #   select(sg_session_n) %>%
-      #   ggplot(aes(sg_session_n)) +
-      #   geom_bar() +
-      #   labs(x = "Pregain Session Number", y = "Count", fill = "") +
-      #   scale_x_continuous(breaks = seq(2, (length(
-      #     input$sg_var_list
-      #   ) - 2), by = 1)) +
-      #   scale_y_continuous(breaks = seq(0, 35, by = 2)) +
-      #   coord_cartesian(ylim = c(0, y_limit), xlim = c(2, (length(
-      #     input$sg_var_list
-      #   ) - 2))) +
-      #   ggtitle(paste0('Fig. A.2: byperson (', input$multiple_sg_select  , " gain)")) +
-      #   theme_gray()
       
       plot_byperson_average_sg <-
         plot_sg(
-          data = byperson_reactive(), colour_single = "#481567FF",
+          data = byperson_reactive(),
+          colour_single = "#481567FF",
           id_var_name = "id",
           tx_start_var_name = input$sg_var_list[1],
           tx_end_var_name = last(input$sg_var_list),
@@ -634,15 +775,23 @@ server <- function(input, output, session) {
           ylab = "BDI",
           xlab = "Session"
         ) +
-        labs(title = paste0("Source: Based on 'byperson' data set (", input$multiple_sg_select  , " gain)")) +
+        labs(
+          title = paste0(
+            "Source: Based on 'byperson' data set (",
+            input$multiple_sg_select  ,
+            " gain)"
+          )
+        ) +
         theme_gray() +
         theme(text = element_text(size = 18)) +
-        theme(plot.title=element_text(size= 12, face = "plain", colour = "grey40"))
-        
+        theme(plot.title = element_text(
+          size = 12,
+          face = "plain",
+          colour = "grey40"
+        ))
       
       plot_byperson_average_sg
-      # plot_byperson_sg_session_n + plot_byperson_average_sg  &
-      #   theme(text = element_text(size = 18))
+      
     }
   })
   
@@ -669,33 +818,15 @@ server <- function(input, output, session) {
           input$sg_var_list
         ) - 2))) +
         labs(title = paste0("Source: Based on 'bysg' data set (all gains)")) +
-                theme_gray() +
+        theme_gray() +
         theme(text = element_text(size = 18)) +
-        theme(plot.title=element_text(size= 12, face = "plain", colour = "grey40"))
-        
-      
-      # plot_bysg_average_sg <- plot_sg(
-      #   data = bysg_reactive(),
-      #   id_var_name = "id",
-      #   tx_start_var_name = input$sg_var_list[1],
-      #   tx_end_var_name = last(input$sg_var_list),
-      #   sg_pre_post_var_list = c(
-      #     "sg_bdi_2n",
-      #     "sg_bdi_1n",
-      #     "sg_bdi_n",
-      #     "sg_bdi_n1",
-      #     "sg_bdi_n2",
-      #     "sg_bdi_n3"
-      #   ),
-      #   ylab = "BDI",
-      #   xlab = "Session"
-      # ) +
-      #   ggtitle('Fig. B.1: bysg (all gains)') +
-      #   theme_gray()
-      
+        theme(plot.title = element_text(
+          size = 12,
+          face = "plain",
+          colour = "grey40"
+        ))
+
       plot_bysg_sg_session_n
-      # plot_bysg_sg_session_n + plot_bysg_average_sg &
-      #   theme(text = element_text(size = 18))
       
     } else if (input$describe_bysg_or_byperson == "byperson") {
       plot_byperson_sg_session_n <- byperson_reactive() %>%
@@ -710,34 +841,21 @@ server <- function(input, output, session) {
         coord_cartesian(ylim = c(0, y_limit), xlim = c(2, (length(
           input$sg_var_list
         ) - 2))) +
-        labs(title = paste0("Source: Based on 'byperson' (", input$multiple_sg_select  , " gain)")) +
+        labs(title = paste0(
+          "Source: Based on 'byperson' (",
+          input$multiple_sg_select  ,
+          " gain)"
+        )) +
         theme_gray() +
-        theme(plot.title=element_text(size= 12, face = "plain", colour = "grey40")) +
+        theme(plot.title = element_text(
+          size = 12,
+          face = "plain",
+          colour = "grey40"
+        )) +
         theme(text = element_text(size = 18))
       
-      # plot_byperson_average_sg <-
-      #   plot_sg(
-      #     data = byperson_reactive(),
-      #     id_var_name = "id",
-      #     tx_start_var_name = input$sg_var_list[1],
-      #     tx_end_var_name = last(input$sg_var_list),
-      #     sg_pre_post_var_list = c(
-      #       "sg_bdi_2n",
-      #       "sg_bdi_1n",
-      #       "sg_bdi_n",
-      #       "sg_bdi_n1",
-      #       "sg_bdi_n2",
-      #       "sg_bdi_n3"
-      #     ),
-      #     ylab = "BDI",
-      #     xlab = "Session"
-      #   ) +
-      #   ggtitle(paste0('Fig. B.2: byperson (', input$multiple_sg_select  , " gain)")) +
-      #   theme_gray()
-      
       plot_byperson_sg_session_n
-      # plot_byperson_sg_session_n + plot_byperson_average_sg  &
-      #   theme(text = element_text(size = 18))
+      
     }
   })
   
@@ -810,9 +928,7 @@ server <- function(input, output, session) {
           sg_crit3_critical_value_2missing,
           sep = ", "
         )
-        
       }
-      
     )
   })
   
@@ -855,6 +971,70 @@ server <- function(input, output, session) {
         descriptives_bysg$sg_magnitude_sd
       }
     )
+  })
+  
+  output$check_interval_txt <- renderPrint({
+    if (input$sg_crit1_check == TRUE) {
+      sg_crit1_cutoff_check <- input$sg_crit1_cutoff_check
+    } else if (input$sg_crit1_check == FALSE) {
+      sg_crit1_cutoff_check <- NULL
+    }
+    
+    if (input$sg_crit2_check == TRUE) {
+      sg_crit2_pct_check <- input$sg_crit2_pct_check / 100
+    } else if (input$sg_crit2_check == FALSE) {
+      sg_crit2_pct_check <- NULL
+    }
+    
+    check_interval(
+      pre_values = c(input$sg_2n_check, input$sg_1n_check, input$sg_n_check),
+      post_values = c(input$sg_n1_check, input$sg_n2_check, input$sg_n3_check),
+      sg_crit1_cutoff = sg_crit1_cutoff_check,
+      sg_crit2_pct = sg_crit2_pct_check,
+      sg_crit3 = input$sg_crit3_check,
+      sg_crit3_alpha = as.numeric(input$sg_crit3_alpha_check),
+      identify = "sg"
+    )
+  })
+  
+  output$plot_sg_average_check <- renderPlot({
+    data <- tibble(
+      time = factor(
+        x = c(
+          "sg_2n_check",
+          "sg_1n_check",
+          "sg_n_check",
+          "sg_n1_check",
+          "sg_n2_check",
+          "sg_n3_check"
+        ),
+        levels = c(
+          "sg_2n_check",
+          "sg_1n_check",
+          "sg_n_check",
+          "sg_n1_check",
+          "sg_n2_check",
+          "sg_n3_check"
+        )
+      ),
+      score = c(
+        input$sg_2n_check,
+        input$sg_1n_check,
+        input$sg_n_check,
+        input$sg_n1_check,
+        input$sg_n2_check,
+        input$sg_n3_check
+      )
+    )
+    
+    ggplot(data = data, aes(x = time, y = score, group = 1)) +
+      geom_point(colour = "#239b89ff", size = 2) +
+      geom_line(data = data[!is.na(data$score), ],
+                colour = "#239b89ff",
+                alpha = .4) +
+      ggplot2::scale_x_discrete(labels = base::c("N-2", "N-1", "N",
+                                                 "N+1", "N+2", "N+3")) +
+      ggplot2::theme(text = ggplot2::element_text(size = 18))
   })
   
 }
