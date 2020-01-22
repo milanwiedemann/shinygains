@@ -6,7 +6,7 @@
 #
 #    http://shiny.rstudio.com/
 #
-
+# Load packages ----
 library(shiny)
 library(tidyverse)
 library(patchwork)
@@ -19,8 +19,9 @@ library(readr)
 library(DT)
 options(htmlwidgets.TOJSON_ARGS = list(na = 'string'))
 
-# Define UI for application that draws a histogram
+# Define UI ----
 ui <- tagList(tags$head(
+  # GA ----
   HTML(
     "<script>
       (function(i,s,o,g,r,a,m){
@@ -39,22 +40,97 @@ ui <- tagList(tags$head(
       </script>"
   )
 ),
+# Navigation Bar ----
 navbarPage(
   "shinygains",
+  # 1. Sudden Gains Panel ----
   tabPanel(
-    "Sudden Gains",
+    "Identify Sudden Gains",
     column(
       width = 3,
       helpText(),
-      h4("Select Criteria:"),
-      wellPanel(selectInput(
-        "sgsl",
-        label = h5("Identify:"),
-        choices = list("Sudden Gains" = "sg",
-                       "Sudden Losses" = "sl"),
-        selected = "sg"
-      )),
+      # 1. Data Characteristics ---- 
+      h4("Data Characteristics:"),
       tabsetPanel(
+        tabPanel("Select Data",
+                 helpText(),
+                 wellPanel(
+                   helpText(),
+                   selectInput(
+                     "data",
+                     label = h5("Select Input Data Set:"),
+                     choices = list(
+                       "Example Data Set 1" = "sgdata",
+                       "Example Data Set 2 (No NAs)" = "sgdata_no_na"
+                     ),
+                     selected = "sgdata"
+                   ),
+                   selectInput(
+                     "sg_var_list",
+                     h5("Select Repeated Measures:"),
+                     choices = c(
+                       "bdi_s1",
+                       "bdi_s2",
+                       "bdi_s3",
+                       "bdi_s4",
+                       "bdi_s5",
+                       "bdi_s6",
+                       "bdi_s7",
+                       "bdi_s8",
+                       "bdi_s9",
+                       "bdi_s10",
+                       "bdi_s11",
+                       "bdi_s12"
+                     ),
+                     selected = c(
+                       "bdi_s1",
+                       "bdi_s2",
+                       "bdi_s3",
+                       "bdi_s4",
+                       "bdi_s5",
+                       "bdi_s6",
+                       "bdi_s7",
+                       "bdi_s8",
+                       "bdi_s9",
+                       "bdi_s10",
+                       "bdi_s11",
+                       "bdi_s12"
+                     ),
+                     multiple = TRUE
+                   ),
+                   helpText(
+                     "Select variables in the order that reflects the time points that were measured."
+                   ))),
+        tabPanel("Define Missingness",
+                 helpText(),
+                 wellPanel(
+                   sliderInput(
+                     "na_pct",
+                     h5("Missingness in % in Repeated Measures:"),
+                     min = 0,
+                     max = 100,
+                     value = 0,
+                     step = 1
+                   ),
+                   helpText(
+                     "Note: Some values are already missing in the original data set, SAY sth about Example data set 1 vs 2, so this is not super super accurate. Say something about random missing values here."
+                   )))
+      ),
+      # 1. Select Crit123 ----
+      h4("Select Criteria:"),
+      tabsetPanel(
+        tabPanel("Identify",
+                 helpText(),
+                 wellPanel(
+          selectInput(
+            "sgsl",
+            label = h5("Identify Sudden Gains or Losses:"),
+            choices = list("Sudden Gains" = "sg",
+                           "Sudden Losses" = "sl"),
+            selected = "sg"
+          )
+          )
+        ),
         tabPanel(
           "Crit 1",
           helpText(),
@@ -63,7 +139,7 @@ navbarPage(
                           label = "Apply Criterion 1",
                           value = TRUE),
             numericInput(
-              "sg_crit1_cutoff",
+              inputId = "sg_crit1_cutoff",
               h5("Cut-off value:"),
               value = 7,
               step = .1,
@@ -121,84 +197,26 @@ navbarPage(
             ),
             helpText(
               "Noite: See the 'Recerences' tab at the top for papers discussing the third criterion."
+              # Just some random code about hoe to include a link in UI
               # a("semPlot: Path Diagrams and Visual Analysis of Various SEM Packages' Output. R package version 1.1.2.",
               #          href="https://CRAN.R-project.org/package=semPlot",
               #          target="_blank"
               #          )
             )
-            
           )
-        )
-      ),
-      h4("Data Characteristics:"),
-      helpText(),
-      wellPanel(
-        helpText(),
-        selectInput(
-          "data",
-          label = h5("Select Data Set:"),
-          choices = list(
-            "Example Data Set 1" = "sgdata",
-            "Example Data Set 2 (No NAs)" = "sgdata_no_na"
-          ),
-          selected = "sgdata"
-        ),
-        selectInput(
-          "sg_var_list",
-          h5("Select Repeated Measures:"),
-          choices = c(
-            "bdi_s1",
-            "bdi_s2",
-            "bdi_s3",
-            "bdi_s4",
-            "bdi_s5",
-            "bdi_s6",
-            "bdi_s7",
-            "bdi_s8",
-            "bdi_s9",
-            "bdi_s10",
-            "bdi_s11",
-            "bdi_s12"
-          ),
-          selected = c(
-            "bdi_s1",
-            "bdi_s2",
-            "bdi_s3",
-            "bdi_s4",
-            "bdi_s5",
-            "bdi_s6",
-            "bdi_s7",
-            "bdi_s8",
-            "bdi_s9",
-            "bdi_s10",
-            "bdi_s11",
-            "bdi_s12"
-          ),
-          multiple = TRUE
-        ),
-        helpText(
-          "Select variables in the order that reflects the time points that were measured."
-        ),
-        sliderInput(
-          "na_pct",
-          h5("Missingness in % in Repeated Measures:"),
-          min = 0,
-          max = 100,
-          value = 0,
-          step = 1
-        ),
-        helpText(
-          "Note: Some values are already missing in the original data set, SAY sth about Example data set 1 vs 2, so this is not super super accurate. Say something about random missing values here."
         )
       )
     ),
+    # 1. Results ----
     column(
       9,
       h4("Results:"),
       tabsetPanel(
+        # 1. Summary ----
         tabPanel("Summary",
                  helpText(),
                  tabsetPanel(
+                   # 1. Descriptives ----
                    tabPanel("Descriptives",
                             helpText(),
                             fixedRow(
@@ -208,32 +226,29 @@ navbarPage(
                                 selectInput(
                                   "describe_bysg_or_byperson",
                                   label = h5("Specify which data set to describe:"),
-                                  choices = list("bysg" = "bysg",
-                                                 "byperson" = "byperson"),
+                                  choices = list("All gains/losses (bysg)" = "bysg",
+                                                 "One gain/loss per person (byperson)" = "byperson"),
                                   selected = "bysg"
                                 ),
-                                # hr(),
                                 fixedRow(column(12,
                                                 fixedRow(
                                                   column(
                                                     6,
-                                                    h5("Sudden Gains Criteria:"),
+                                                    h5("Sudden Gains Criteria Applied:"),
                                                     verbatimTextOutput("descriptives_sg_crit123")
                                                   ),
                                                   column(
                                                     6,
-                                                    h5("Sudden Gains Descriptives:"),
+                                                    h5("Descriptives of Sudden Gains:"),
                                                     verbatimTextOutput("descriptives_sg")
                                                   )
                                                 ))),
                                 hr(),
-                                
-                                
                                 fixedRow(column(12,
                                                 fixedRow(
                                                   column(
                                                     6,
-                                                    h5("Pregain Session Number:"),
+                                                    h5("Distribution of Pregain Session Numbers:"),
                                                     plotOutput("plot_sg_session_n")
                                                   ),
                                                   column(
@@ -242,13 +257,12 @@ navbarPage(
                                                     plotOutput("plot_average_sg")
                                                   )
                                                 ))),
-                                
-                                
                                 helpText(
                                   "Note: To change the selected gain for the byperson data set, go to the 'Create byperson Data Set' panel at the top."
                                 )
                               )
                             )),
+                   # 1. Longotudinal Plot ----
                    tabPanel("Longitudinal Plot",
                             helpText(),
                             fixedRow(
@@ -311,17 +325,19 @@ navbarPage(
                               )
                             ))
                  )),
+        # 1. Input Data Set ----
         tabPanel(
-          "Selected Data Set",
+          "Input Data Set",
           helpText(),
           DT::dataTableOutput("sgdata_table")
-          # , helpText("Note: xxx.")
         ),
+        # 1. bysg Data Set ----
         tabPanel(
           HTML("Create <I>bysg</I> Data Set"),
           helpText(),
           DT::dataTableOutput("bysg_table")
         ),
+        # 1. byperson Data Set ----
         tabPanel(
           HTML("Create <I>byperson</I> Data Set"),
           helpText(),
@@ -329,10 +345,10 @@ navbarPage(
             "multiple_sg_select",
             label = h5("Specify which sudden gain/loss to select:"),
             choices = list(
-              "first" = "first",
-              "last" = "last",
-              "smallest" = "smallest",
-              "largest" = "largest"
+              "first gain/loss" = "first",
+              "last gain/loss" = "last",
+              "smallest gain/loss" = "smallest",
+              "largest gain/loss" = "largest"
             ),
             selected = "first"
           ),
@@ -342,22 +358,82 @@ navbarPage(
       )
     )
   ),
+  # 2. Check Interval ----
   tabPanel(
     "Check Interval",
     column(
       width = 3,
       helpText(),
-      h4("Select Criteria:"),
+      # 2. Enter Values ----
+      h4("Enter Values:"),
       wellPanel(
-        selectInput(
-          "sgsl_check",
-          label = h5("Identify:"),
-          choices = list("Sudden Gains" = "sg",
-                         "Sudden Losses" = "sl"),
-          selected = "sg"
+        h5("Pregain Values:"),
+        fixedRow(
+          column(4,
+                 numericInput(
+                   "sg_2n_check",
+                   h5("N-2:"),
+                   value = 21,
+                   step = 1
+                 )),
+          column(4,
+                 numericInput(
+                   "sg_1n_check",
+                   h5("N-1:"),
+                   value = 18,
+                   step = 1
+                 )),
+          column(4,
+                 numericInput(
+                   "sg_n_check",
+                   h5("N:"),
+                   value = 20,
+                   step = 1
+                 ))
+        ),
+        h5("Postgain Values:"),
+        fixedRow(
+          column(4,
+                 numericInput(
+                   "sg_n1_check",
+                   h5("N+1:"),
+                   value = 11,
+                   step = 1
+                 )),
+          column(4,
+                 numericInput(
+                   "sg_n2_check",
+                   h5("N+2:"),
+                   value = 13,
+                   step = 1
+                 )),
+          column(4,
+                 numericInput(
+                   "sg_n3_check",
+                   h5("N+3:"),
+                   value = 8,
+                   step = 1
+                 ))
+        ),
+        helpText(
+          "Note: The cut-off value for Crit 1 needs to be positive to identify sudden gains and negative to identify sudden losses."
         )
-      ),
+      ), 
+      # 2. Select Criteria ----
+      h4("Select Criteria:"),
       tabsetPanel(
+        tabPanel("Identify",
+                 helpText(),
+          wellPanel(
+            selectInput(
+              "sgsl_check",
+              label = h5("Identify:"),
+              choices = list("Sudden Gains" = "sg",
+                             "Sudden Losses" = "sl"),
+              selected = "sg"
+            )
+          )
+        ),
         tabPanel(
           "Crit 1",
           helpText(),
@@ -432,79 +508,31 @@ navbarPage(
             
           )
         )
-      ),
-      hr(),
-      h4("Enter Values:"),
-      wellPanel(
-        h5("Pregain Values:"),
-        fixedRow(
-          column(4,
-                 numericInput(
-                   "sg_2n_check",
-                   h5("N-2:"),
-                   value = 21,
-                   step = 1
-                 )),
-          column(4,
-                 numericInput(
-                   "sg_1n_check",
-                   h5("N-1:"),
-                   value = 18,
-                   step = 1
-                 )),
-          column(4,
-                 numericInput(
-                   "sg_n_check",
-                   h5("N:"),
-                   value = 20,
-                   step = 1
-                 ))
-        ),
-        h5("Postgain Values:"),
-        fixedRow(
-          column(4,
-                 numericInput(
-                   "sg_n1_check",
-                   h5("N+1:"),
-                   value = 11,
-                   step = 1
-                 )),
-          column(4,
-                 numericInput(
-                   "sg_n2_check",
-                   h5("N+2:"),
-                   value = 13,
-                   step = 1
-                 )),
-          column(4,
-                 numericInput(
-                   "sg_n3_check",
-                   h5("N+3:"),
-                   value = 8,
-                   step = 1
-                 ))
-        ),
-        helpText(
-          "Note: The cut-off value for Crit 1 needs to be positive to identify sudden gains and negative to identify sudden losses."
-        )
       )
     ),
     column(9,
-           h4("Results:"),
-           helpText(),
            fixedRow(
+             # 2. Summary ----
              column(6,
-                    h5("Summary:"),
+                    h4("Summary:"),
                     verbatimTextOutput("check_interval_txt")),
+             # 2. Visualiation of Values ----
              column(
                6,
-               h5("Visualiation of Values:"),
+               h4("Visualiation of Values:"),
                plotOutput("plot_sg_average_check")
              )
            ))
   ),
-  tabPanel("References", )
-))
+  tabPanel("Help",
+           tabsetPanel(
+             tabPanel("Variable Descriptions",),
+             tabPanel("suddengains Paper",),
+             tabPanel("Reference", 
+                      # tags$iframe(style="height:100vh; width:100%; scrolling=yes",
+                      #             src="https://cran.r-project.org/doc/manuals/r-release/R-intro.pdf"))
+           ))
+)))
 
 # Define server ----
 server <- function(input, output, session) {
@@ -524,7 +552,7 @@ server <- function(input, output, session) {
       select("id", input$sg_var_list)
     
     sgdata_weekly_temp_na <- sgdata_weekly_temp %>%
-      tidyr::gather(vars, value, -id) %>%
+      tidyr::gather(vars, value,-id) %>%
       dplyr::mutate(vars = base::factor(vars, levels =  input$sg_var_list)) %>%
       dplyr::mutate(
         random_num = runif(nrow(.)),
@@ -756,7 +784,6 @@ server <- function(input, output, session) {
       plot_bysg_average_sg
       
     } else if (input$describe_bysg_or_byperson == "byperson") {
-      
       plot_byperson_average_sg <-
         plot_sg(
           data = byperson_reactive(),
@@ -825,7 +852,7 @@ server <- function(input, output, session) {
           face = "plain",
           colour = "grey40"
         ))
-
+      
       plot_bysg_sg_session_n
       
     } else if (input$describe_bysg_or_byperson == "byperson") {
@@ -951,9 +978,8 @@ server <- function(input, output, session) {
       descriptives_byperson$sg_pct,
       "%) experienced sudden gains",
       "\n- ",
-      # "N = ",
       descriptives_byperson$sg_multiple_n,
-      " participants experienced multiple SGs",
+      " participants experienced more than one SG",
       "\n- ",
       "Average SG magnitude, M = ",
       
@@ -1029,7 +1055,7 @@ server <- function(input, output, session) {
     
     ggplot(data = data, aes(x = time, y = score, group = 1)) +
       geom_point(colour = "#239b89ff", size = 2) +
-      geom_line(data = data[!is.na(data$score), ],
+      geom_line(data = data[!is.na(data$score),],
                 colour = "#239b89ff",
                 alpha = .4) +
       ggplot2::scale_x_discrete(labels = base::c("N-2", "N-1", "N",
