@@ -49,72 +49,78 @@ navbarPage(
     column(
       width = 3,
       helpText(),
-      # 1. UI Data Characteristics ---- 
+      # 1. UI Data Characteristics ----
       h4("Data Characteristics:"),
       tabsetPanel(
-        tabPanel("Select Data",
-                 helpText(),
-                 wellPanel(
-                   helpText(),
-                   selectInput(
-                     "data",
-                     label = h5("Select Input Data Set:"),
-                     choices = list(
-                       "Example Data Set 1" = "sgdata",
-                       "Example Data Set 2 (No NAs)" = "sgdata_no_na"
-                     ),
-                     selected = "sgdata"
-                   ),
-                   selectInput(
-                     "sg_var_list",
-                     h5("Select Repeated Measures:"),
-                     choices = c(
-                       "bdi_s1",
-                       "bdi_s2",
-                       "bdi_s3",
-                       "bdi_s4",
-                       "bdi_s5",
-                       "bdi_s6",
-                       "bdi_s7",
-                       "bdi_s8",
-                       "bdi_s9",
-                       "bdi_s10",
-                       "bdi_s11",
-                       "bdi_s12"
-                     ),
-                     selected = c(
-                       "bdi_s1",
-                       "bdi_s2",
-                       "bdi_s3",
-                       "bdi_s4",
-                       "bdi_s5",
-                       "bdi_s6",
-                       "bdi_s7",
-                       "bdi_s8",
-                       "bdi_s9",
-                       "bdi_s10",
-                       "bdi_s11",
-                       "bdi_s12"
-                     ),
-                     multiple = TRUE
-                   ),
-                   helpText(
-                     "Select variables in the order that reflects the time points that were measured."
-                   ))),
-        tabPanel("Define Missingness",
-                 helpText(),
-                 wellPanel(
-                   sliderInput(
-                     "na_pct",
-                     h5("Missingness in % in Repeated Measures:"),
-                     min = 0,
-                     max = 100,
-                     value = 0,
-                     step = 1
-                   ),
-                   helpText(
-                     "Note: Some values are already missing in the original data set, SAY sth about Example data set 1 vs 2, so this is not super super accurate. Say something about random missing values here."
-                   )))
+        tabPanel(
+          "Select Data",
+          helpText(),
+          wellPanel(
+            helpText(),
+            selectInput(
+              "data",
+              label = h5("Select Input Data Set:"),
+              choices = list(
+                "Example Data Set 1" = "sgdata",
+                "Example Data Set 2 (No NAs)" = "sgdata_no_na"
+              ),
+              selected = "sgdata"
+            ),
+            selectInput(
+              "sg_var_list",
+              h5("Select Repeated Measures:"),
+              choices = c(
+                "bdi_s1",
+                "bdi_s2",
+                "bdi_s3",
+                "bdi_s4",
+                "bdi_s5",
+                "bdi_s6",
+                "bdi_s7",
+                "bdi_s8",
+                "bdi_s9",
+                "bdi_s10",
+                "bdi_s11",
+                "bdi_s12"
+              ),
+              selected = c(
+                "bdi_s1",
+                "bdi_s2",
+                "bdi_s3",
+                "bdi_s4",
+                "bdi_s5",
+                "bdi_s6",
+                "bdi_s7",
+                "bdi_s8",
+                "bdi_s9",
+                "bdi_s10",
+                "bdi_s11",
+                "bdi_s12"
+              ),
+              multiple = TRUE
+            ),
+            helpText(
+              "Select variables in the order that reflects the time points that were measured."
+            )
+          )
+        ),
+        tabPanel(
+          "Define Missingness",
+          helpText(),
+          wellPanel(
+            sliderInput(
+              "na_pct",
+              h5("Missingness in % in Repeated Measures:"),
+              min = 0,
+              max = 100,
+              value = 0,
+              step = 1
+            ),
+            helpText(
+              "Note: Some values are already missing in the original data set, SAY sth about Example data set 1 vs 2, so this is not super super accurate. Say something about random missing values here."
+            )
+          )
+        )
       ),
       # 1. UI Select Crit123 ----
       h4("Select Criteria:"),
@@ -122,15 +128,14 @@ navbarPage(
         tabPanel("Identify",
                  helpText(),
                  wellPanel(
-          selectInput(
-            "sgsl",
-            label = h5("Identify Sudden Gains or Losses:"),
-            choices = list("Sudden Gains" = "sg",
-                           "Sudden Losses" = "sl"),
-            selected = "sg"
-          )
-          )
-        ),
+                   selectInput(
+                     "sgsl",
+                     label = h5("Identify Sudden Gains or Losses:"),
+                     choices = list("Sudden Gains" = "sg",
+                                    "Sudden Losses" = "sl"),
+                     selected = "sg"
+                   )
+                 )),
         tabPanel(
           "Crit 1",
           helpText(),
@@ -226,8 +231,10 @@ navbarPage(
                                 selectInput(
                                   "describe_bysg_or_byperson",
                                   label = h5("Specify which data set to describe:"),
-                                  choices = list("All gains/losses (bysg)" = "bysg",
-                                                 "One gain/loss per person (byperson)" = "byperson"),
+                                  choices = list(
+                                    "All gains/losses (bysg)" = "bysg",
+                                    "One gain/loss per person (byperson)" = "byperson"
+                                  ),
                                   selected = "bysg"
                                 ),
                                 fixedRow(column(12,
@@ -418,22 +425,21 @@ navbarPage(
         helpText(
           "Note: The cut-off value for Crit 1 needs to be positive to identify sudden gains and negative to identify sudden losses."
         )
-      ), 
+      ),
       # 2. UI Select Criteria ----
       h4("Select Criteria:"),
       tabsetPanel(
         tabPanel("Identify",
                  helpText(),
-          wellPanel(
-            selectInput(
-              "sgsl_check",
-              label = h5("Identify:"),
-              choices = list("Sudden Gains" = "sg",
-                             "Sudden Losses" = "sl"),
-              selected = "sg"
-            )
-          )
-        ),
+                 wellPanel(
+                   selectInput(
+                     "sgsl_check",
+                     label = h5("Identify:"),
+                     choices = list("Sudden Gains" = "sg",
+                                    "Sudden Losses" = "sl"),
+                     selected = "sg"
+                   )
+                 )),
         tabPanel(
           "Crit 1",
           helpText(),
@@ -524,30 +530,40 @@ navbarPage(
              )
            ))
   ),
-  tabPanel("Help",
-           tabsetPanel(
-             tabPanel("Variable Descriptions",
-                      helpText(),  # just a placeholder for a little bit top margin
-                      DT::dataTableOutput("sg_var_names_labels")
-                      ),
-             tabPanel("suddengains Paper",
-                      helpText(),
-                      htmlOutput("suddengains_paper_pdf")),
-                      
-             tabPanel("suddengains Tutorial", 
-                      # tags$iframe(style="height:100vh; width:100%; scrolling=yes",
-                      #             src="https://cran.r-project.org/web/packages/suddengains/vignettes/suddengains-tutorial.html")
-                      helpText(),
-                      htmlOutput("suddengains_tutorial_html")
-                      ),
-             tabPanel("suddengains CRAN",
-                      helpText(),
-                      htmlOutput("suddengains_cran_pdf")),
-             tabPanel("References",
-                      helpText(),
-                      htmlOutput("suddengains_zotero_references_bibbase")
-             )
-           ))
+  tabPanel(
+    "Help",
+    tabsetPanel(
+      tabPanel(
+        "Variable Descriptions",
+        helpText(),
+        # just a placeholder for a little bit top margin
+        DT::dataTableOutput("sg_var_names_labels")
+      ),
+      tabPanel(
+        "suddengains Paper",
+        helpText(),
+        htmlOutput("suddengains_paper_pdf")
+      ),
+      
+      tabPanel(
+        "suddengains Tutorial",
+        # tags$iframe(style="height:100vh; width:100%; scrolling=yes",
+        #             src="https://cran.r-project.org/web/packages/suddengains/vignettes/suddengains-tutorial.html")
+        helpText(),
+        htmlOutput("suddengains_tutorial_html")
+      ),
+      tabPanel(
+        "suddengains CRAN",
+        helpText(),
+        htmlOutput("suddengains_cran_pdf")
+      ),
+      tabPanel(
+        "References",
+        helpText(),
+        htmlOutput("suddengains_zotero_references_bibbase")
+      )
+    )
+  )
 ))
 
 # Define server ----
@@ -568,7 +584,7 @@ server <- function(input, output, session) {
       select("id", input$sg_var_list)
     
     sgdata_weekly_temp_na <- sgdata_weekly_temp %>%
-      tidyr::gather(vars, value,-id) %>%
+      tidyr::gather(vars, value, -id) %>%
       dplyr::mutate(vars = base::factor(vars, levels =  input$sg_var_list)) %>%
       dplyr::mutate(
         random_num = runif(nrow(.)),
@@ -1071,7 +1087,7 @@ server <- function(input, output, session) {
     
     ggplot(data = data, aes(x = time, y = score, group = 1)) +
       geom_point(colour = "#239b89ff", size = 2) +
-      geom_line(data = data[!is.na(data$score),],
+      geom_line(data = data[!is.na(data$score), ],
                 colour = "#239b89ff",
                 alpha = .4) +
       ggplot2::scale_x_discrete(labels = base::c("N-2", "N-1", "N",
@@ -1082,25 +1098,39 @@ server <- function(input, output, session) {
   
   
   output$suddengains_tutorial_html <- renderUI({
-    suddengains_tutorial_html <- tags$iframe(frameborder="0" ,style="height:100vh; width:100%; scrolling=yes" ,src="https://cran.r-project.org/web/packages/suddengains/vignettes/suddengains-tutorial.html")
+    suddengains_tutorial_html <-
+      tags$iframe(frameborder = "0",
+                  style = "height:100vh; width:100%; scrolling=yes",
+                  src = "https://cran.r-project.org/web/packages/suddengains/vignettes/suddengains-tutorial.html")
     print(suddengains_tutorial_html)
     suddengains_tutorial_html
   })
   
   output$suddengains_paper_pdf <- renderUI({
-    suddengains_cran_pdf <- tags$iframe(frameborder="0" ,style="height:100vh; width:100%; scrolling=yes" ,src="https://milanwiedemann.github.io/shinygains/r-suddengains.pdf")
+    suddengains_cran_pdf <-
+      tags$iframe(frameborder = "0",
+                  type="application/pdf",
+                  style = "height:100vh; width:100%; scrolling=yes",
+                  src = "https://docs.google.com/viewer?url=https://milanwiedemann.github.io/shinygains/r-suddengains.pdf&embedded=true")
     print(suddengains_cran_pdf)
     suddengains_cran_pdf
   })
   
   output$suddengains_cran_pdf <- renderUI({
-    suddengains_cran_pdf <- tags$iframe(frameborder="0" ,style="height:100vh; width:100%; scrolling=yes" ,src="https://cran.r-project.org/web/packages/suddengains/suddengains.pdf")
+    suddengains_cran_pdf <-
+      tags$iframe(frameborder = "0",
+                  type="application/pdf",
+                  style = "height:100vh; width:100%; scrolling=yes",
+                  src = "https://cran.r-project.org/web/packages/suddengains/suddengains.pdf")
     print(suddengains_cran_pdf)
     suddengains_cran_pdf
   })
   
   output$suddengains_zotero_references_bibbase <- renderUI({
-    suddengains_zotero_references_bibbase <- tags$iframe(frameborder="0" ,style="height:100vh; width:100%; scrolling=yes",src="https://bibbase.org/show?bib=https%3A%2F%2Fapi.zotero.org%2Fgroups%2F2280342%2Fitems%3Fkey%3DIDng9wgu628dYdU2FyH7gwwh%26format%3Dbibtex%26limit%3D100")
+    suddengains_zotero_references_bibbase <-
+      tags$iframe(frameborder = "0",
+                  style = "height:100vh; width:100%; scrolling=yes",
+                  src = "https://bibbase.org/show?bib=https%3A%2F%2Fapi.zotero.org%2Fgroups%2F2280342%2Fitems%3Fkey%3DIDng9wgu628dYdU2FyH7gwwh%26format%3Dbibtex%26limit%3D100")
     print(suddengains_zotero_references_bibbase)
     suddengains_zotero_references_bibbase
   })
@@ -1110,41 +1140,59 @@ server <- function(input, output, session) {
   # 999 Variable Names ----
   
   data_sg_var_names_labels <- tibble::tribble(
-    ~var_name, ~var_label,  
-    "id_sg", "Unique ID variable for ever sudden gain",
-    "sg_crit123", "Indicate sudden gain TRUE / FALSE",
-    "sg_session_n", "Pregain session",
-    "sg_freq_byperson", "Frequency of sudden gains / losses per person",
-    "sg_bdi_2n", "Pre-pre-pre gain session",
-    "sg_bdi_1n", "Pre-pre gain session",
-    "sg_bdi_n", "Pre-gain session",
-    "sg_bdi_n1", "Post-gain session",
-    "sg_bdi_n2", "Post-post gain session",
-    "sg_bdi_n3", "Post-post-post gain session",
-    "sg_magnitude", "Raw magnitude of sudden gain",
-    "sg_bdi_tx_change", "Total change during treatment",
-    "sg_change_proportion", "Proportion of change represented by the sudden gain",
-    "sg_reversal_value", "Reversal value",
-    "sg_reversal", "Reversal TRUE / FALSE",
+    ~ var_name,
+    ~ var_label,
+    "id_sg",
+    "Unique ID variable for ever sudden gain",
+    "sg_crit123",
+    "Indicate sudden gain TRUE / FALSE",
+    "sg_session_n",
+    "Pregain session",
+    "sg_freq_byperson",
+    "Frequency of sudden gains / losses per person",
+    "sg_bdi_2n",
+    "Pre-pre-pre gain session",
+    "sg_bdi_1n",
+    "Pre-pre gain session",
+    "sg_bdi_n",
+    "Pre-gain session",
+    "sg_bdi_n1",
+    "Post-gain session",
+    "sg_bdi_n2",
+    "Post-post gain session",
+    "sg_bdi_n3",
+    "Post-post-post gain session",
+    "sg_magnitude",
+    "Raw magnitude of sudden gain",
+    "sg_bdi_tx_change",
+    "Total change during treatment",
+    "sg_change_proportion",
+    "Proportion of change represented by the sudden gain",
+    "sg_reversal_value",
+    "Reversal value",
+    "sg_reversal",
+    "Reversal TRUE / FALSE",
   )
   
   
   output$sg_var_names_labels <-
-    DT::renderDataTable(DT::datatable(
-      data_sg_var_names_labels,
-      caption = "New Variables created by create_bysg() and create_byperson() functions.",
-      colnames = c("Variable Name", "Variable Label"),
-      options = list(
-        pageLength = 15,
-        paging = FALSE,
-        scrollX = TRUE,
-        fixedColumns = TRUE,
-        searching = FALSE
-      ),
-      rownames = FALSE
-    ))
+    DT::renderDataTable(
+      DT::datatable(
+        data_sg_var_names_labels,
+        caption = "New Variables created by create_bysg() and create_byperson() functions.",
+        colnames = c("Variable Name", "Variable Label"),
+        options = list(
+          pageLength = 15,
+          paging = FALSE,
+          scrollX = TRUE,
+          fixedColumns = TRUE,
+          searching = FALSE
+        ),
+        rownames = FALSE
+      )
+    )
   
-
+  
   
   
 }
