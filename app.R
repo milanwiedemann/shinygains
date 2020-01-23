@@ -21,7 +21,7 @@ options(htmlwidgets.TOJSON_ARGS = list(na = 'string'))
 
 # Define UI ----
 ui <- tagList(tags$head(
-  # GA ----
+  # 0. GA ----
   HTML(
     "<script>
       (function(i,s,o,g,r,a,m){
@@ -40,16 +40,16 @@ ui <- tagList(tags$head(
       </script>"
   )
 ),
-# Navigation Bar ----
+# 1. UI Navigation Bar ----
 navbarPage(
   "shinygains",
-  # 1. Sudden Gains Panel ----
+  # 1. UI Sudden Gains Panel ----
   tabPanel(
     "Identify Sudden Gains",
     column(
       width = 3,
       helpText(),
-      # 1. Data Characteristics ---- 
+      # 1. UI Data Characteristics ---- 
       h4("Data Characteristics:"),
       tabsetPanel(
         tabPanel("Select Data",
@@ -116,7 +116,7 @@ navbarPage(
                      "Note: Some values are already missing in the original data set, SAY sth about Example data set 1 vs 2, so this is not super super accurate. Say something about random missing values here."
                    )))
       ),
-      # 1. Select Crit123 ----
+      # 1. UI Select Crit123 ----
       h4("Select Criteria:"),
       tabsetPanel(
         tabPanel("Identify",
@@ -207,16 +207,16 @@ navbarPage(
         )
       )
     ),
-    # 1. Results ----
+    # 1. UI Results ----
     column(
       9,
       h4("Results:"),
       tabsetPanel(
-        # 1. Summary ----
+        # 1. UI Summary ----
         tabPanel("Summary",
                  helpText(),
                  tabsetPanel(
-                   # 1. Descriptives ----
+                   # 1. UI Descriptives ----
                    tabPanel("Descriptives",
                             helpText(),
                             fixedRow(
@@ -262,7 +262,7 @@ navbarPage(
                                 )
                               )
                             )),
-                   # 1. Longotudinal Plot ----
+                   # 1. UI Longotudinal Plot ----
                    tabPanel("Longitudinal Plot",
                             helpText(),
                             fixedRow(
@@ -325,19 +325,19 @@ navbarPage(
                               )
                             ))
                  )),
-        # 1. Input Data Set ----
+        # 1. UI Input Data Set ----
         tabPanel(
           "Input Data Set",
           helpText(),
           DT::dataTableOutput("sgdata_table")
         ),
-        # 1. bysg Data Set ----
+        # 1. UI bysg Data Set ----
         tabPanel(
           HTML("Create <I>bysg</I> Data Set"),
           helpText(),
           DT::dataTableOutput("bysg_table")
         ),
-        # 1. byperson Data Set ----
+        # 1. UI byperson Data Set ----
         tabPanel(
           HTML("Create <I>byperson</I> Data Set"),
           helpText(),
@@ -358,13 +358,13 @@ navbarPage(
       )
     )
   ),
-  # 2. Check Interval ----
+  # 2. UI Check Interval ----
   tabPanel(
     "Check Interval",
     column(
       width = 3,
       helpText(),
-      # 2. Enter Values ----
+      # 2. UI Enter Values ----
       h4("Enter Values:"),
       wellPanel(
         h5("Pregain Values:"),
@@ -419,7 +419,7 @@ navbarPage(
           "Note: The cut-off value for Crit 1 needs to be positive to identify sudden gains and negative to identify sudden losses."
         )
       ), 
-      # 2. Select Criteria ----
+      # 2. UI Select Criteria ----
       h4("Select Criteria:"),
       tabsetPanel(
         tabPanel("Identify",
@@ -512,11 +512,11 @@ navbarPage(
     ),
     column(9,
            fixedRow(
-             # 2. Summary ----
+             # 2. UI Summary ----
              column(6,
                     h4("Summary:"),
                     verbatimTextOutput("check_interval_txt")),
-             # 2. Visualiation of Values ----
+             # 2. UI Visualiation of Values ----
              column(
                6,
                h4("Visualiation of Values:"),
@@ -526,13 +526,29 @@ navbarPage(
   ),
   tabPanel("Help",
            tabsetPanel(
-             tabPanel("Variable Descriptions",),
-             tabPanel("suddengains Paper",),
-             tabPanel("Reference", 
+             tabPanel("Variable Descriptions",
+                      helpText(),  # just a placeholder for a little bit top margin
+                      DT::dataTableOutput("sg_var_names_labels")
+                      ),
+             tabPanel("suddengains Paper",
+                      helpText(),
+                      htmlOutput("suddengains_paper_pdf")),
+                      
+             tabPanel("suddengains Tutorial", 
                       # tags$iframe(style="height:100vh; width:100%; scrolling=yes",
-                      #             src="https://cran.r-project.org/doc/manuals/r-release/R-intro.pdf"))
+                      #             src="https://cran.r-project.org/web/packages/suddengains/vignettes/suddengains-tutorial.html")
+                      helpText(),
+                      htmlOutput("suddengains_tutorial_html")
+                      ),
+             tabPanel("suddengains CRAN",
+                      helpText(),
+                      htmlOutput("suddengains_cran_pdf")),
+             tabPanel("References",
+                      helpText(),
+                      htmlOutput("suddengains_zotero_references_bibbase")
+             )
            ))
-)))
+))
 
 # Define server ----
 server <- function(input, output, session) {
@@ -1062,6 +1078,74 @@ server <- function(input, output, session) {
                                                  "N+1", "N+2", "N+3")) +
       ggplot2::theme(text = ggplot2::element_text(size = 18))
   })
+  
+  
+  
+  output$suddengains_tutorial_html <- renderUI({
+    suddengains_tutorial_html <- tags$iframe(frameborder="0" ,style="height:100vh; width:100%; scrolling=yes" ,src="https://cran.r-project.org/web/packages/suddengains/vignettes/suddengains-tutorial.html")
+    print(suddengains_tutorial_html)
+    suddengains_tutorial_html
+  })
+  
+  output$suddengains_paper_pdf <- renderUI({
+    suddengains_cran_pdf <- tags$iframe(frameborder="0" ,style="height:100vh; width:100%; scrolling=yes" ,src="https://milanwiedemann.github.io/shinygains/r-suddengains.pdf")
+    print(suddengains_cran_pdf)
+    suddengains_cran_pdf
+  })
+  
+  output$suddengains_cran_pdf <- renderUI({
+    suddengains_cran_pdf <- tags$iframe(frameborder="0" ,style="height:100vh; width:100%; scrolling=yes" ,src="https://cran.r-project.org/web/packages/suddengains/suddengains.pdf")
+    print(suddengains_cran_pdf)
+    suddengains_cran_pdf
+  })
+  
+  output$suddengains_zotero_references_bibbase <- renderUI({
+    suddengains_zotero_references_bibbase <- tags$iframe(frameborder="0" ,style="height:100vh; width:100%; scrolling=yes",src="https://bibbase.org/show?bib=https%3A%2F%2Fapi.zotero.org%2Fgroups%2F2280342%2Fitems%3Fkey%3DIDng9wgu628dYdU2FyH7gwwh%26format%3Dbibtex%26limit%3D100")
+    print(suddengains_zotero_references_bibbase)
+    suddengains_zotero_references_bibbase
+  })
+  
+  
+  
+  # 999 Variable Names ----
+  
+  data_sg_var_names_labels <- tibble::tribble(
+    ~var_name, ~var_label,  
+    "id_sg", "Unique ID variable for ever sudden gain",
+    "sg_crit123", "Indicate sudden gain TRUE / FALSE",
+    "sg_session_n", "Pregain session",
+    "sg_freq_byperson", "Frequency of sudden gains / losses per person",
+    "sg_bdi_2n", "Pre-pre-pre gain session",
+    "sg_bdi_1n", "Pre-pre gain session",
+    "sg_bdi_n", "Pre-gain session",
+    "sg_bdi_n1", "Post-gain session",
+    "sg_bdi_n2", "Post-post gain session",
+    "sg_bdi_n3", "Post-post-post gain session",
+    "sg_magnitude", "Raw magnitude of sudden gain",
+    "sg_bdi_tx_change", "Total change during treatment",
+    "sg_change_proportion", "Proportion of change represented by the sudden gain",
+    "sg_reversal_value", "Reversal value",
+    "sg_reversal", "Reversal TRUE / FALSE",
+  )
+  
+  
+  output$sg_var_names_labels <-
+    DT::renderDataTable(DT::datatable(
+      data_sg_var_names_labels,
+      caption = "New Variables created by create_bysg() and create_byperson() functions.",
+      colnames = c("Variable Name", "Variable Label"),
+      options = list(
+        pageLength = 15,
+        paging = FALSE,
+        scrollX = TRUE,
+        fixedColumns = TRUE,
+        searching = FALSE
+      ),
+      rownames = FALSE
+    ))
+  
+
+  
   
 }
 # Run the application
