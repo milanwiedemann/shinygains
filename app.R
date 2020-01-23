@@ -17,6 +17,7 @@ library(dplyr)
 library(tidyr)
 library(readr)
 library(DT)
+library(naniar)
 options(htmlwidgets.TOJSON_ARGS = list(na = 'string'))
 
 # Define UI ----
@@ -62,7 +63,7 @@ navbarPage(
               label = h5("Select Input Data Set:"),
               choices = list(
                 "Example Data Set 1" = "sgdata",
-                "Example Data Set 2 (No NAs)" = "sgdata_no_na"
+                "Example Data Set 2" = "sgdata_no_na"
               ),
               selected = "sgdata"
             ),
@@ -100,7 +101,9 @@ navbarPage(
               multiple = TRUE
             ),
             helpText(
-              "Select variables in the order that reflects the time points that were measured."
+              "Select variables in the order that reflects the time points that were measured.
+               Example Data Set 1 has 14% missing values to illustrate special cases of identifying sudden gains.
+               Example Data Set 2 has comeplete data."
             )
           )
         ),
@@ -117,7 +120,8 @@ navbarPage(
               step = 1
             ),
             helpText(
-              "Note: Some values are already missing in the original data set, SAY sth about Example data set 1 vs 2, so this is not super super accurate. Say something about random missing values here."
+              "Note: Define percentage of random missing values to be added to the selected input data set. Example Data Set 1 already has 14% missing, so this slider wont be accurate.
+              Example Data Set 2 has complete data."
             )
           )
         )
@@ -380,21 +384,21 @@ navbarPage(
                  numericInput(
                    "sg_2n_check",
                    h5("N-2:"),
-                   value = 21,
+                   value = 28,
                    step = 1
                  )),
           column(4,
                  numericInput(
                    "sg_1n_check",
                    h5("N-1:"),
-                   value = 18,
+                   value = 19,
                    step = 1
                  )),
           column(4,
                  numericInput(
                    "sg_n_check",
                    h5("N:"),
-                   value = 20,
+                   value = 23,
                    step = 1
                  ))
         ),
@@ -404,7 +408,7 @@ navbarPage(
                  numericInput(
                    "sg_n1_check",
                    h5("N+1:"),
-                   value = 11,
+                   value = 12,
                    step = 1
                  )),
           column(4,
@@ -418,12 +422,12 @@ navbarPage(
                  numericInput(
                    "sg_n3_check",
                    h5("N+3:"),
-                   value = 8,
+                   value = NA,
                    step = 1
                  ))
         ),
         helpText(
-          "Note: The cut-off value for Crit 1 needs to be positive to identify sudden gains and negative to identify sudden losses."
+          "Note: To enter missing values leave the box blank. Missing values will be visualised as red points sligtly below all available data points."
         )
       ),
       # 2. UI Select Criteria ----
@@ -621,6 +625,45 @@ server <- function(input, output, session) {
       rownames = FALSE
     ))
   
+  
+
+  
+  
+  
+  # # update missing ----
+  # not including this, jsut have a note sying this somewhere ... too complez ti implement
+  # observe({
+  #   # sgdata_bdi_long <- suddengains::sgdata %>%
+  #   #   select(bdi_s1:bdi_s12) %>%
+  #   #   pivot_longer(cols = bdi_s1:bdi_s12)
+  #   #
+  #   #
+  #   # sgdata_bdi1to12_na_pct <- 1 - mean(complete.cases(sgdata_long$value))
+  #   # 0.1375969 missing ins sgdata
+  # 
+  #   if (input$data == "sgdata") {
+  # 
+  #     updateSliderInput(session = session,
+  #                       inputId = "na_pct",
+  #                       # label = h5("Missingness in % in Repeated Measures:"),
+  #       min = 0,
+  #       max = 100,
+  #       value = 14,
+  #       step = 1
+  #     )
+  #   } else if (input$data == "sgdata_no_na") {
+  #     
+  #     updateSliderInput(session = session,
+  #                       inputId = "na_pct",
+  #                       # label = h5("Missingness in % in Repeated Measures:"),
+  #                       min = 0,
+  #                       max = 100,
+  #                       value = 0,
+  #                       step = 1
+  #     )
+  #   }
+  # })
+  
   # sort out options for 3rd crit
   # depending on whether adjusted is ticked, other input options change
   observe({
@@ -804,9 +847,9 @@ server <- function(input, output, session) {
         ylab = "BDI",
         xlab = "Session"
       ) +
-        labs(title = paste0("Source: Based on 'bysg' data set (all gains)")) +
         theme_gray() +
         theme(text = element_text(size = 18)) +
+        labs(title = paste0("Source: Based on 'bysg' data set (all gains)")) +
         theme(plot.title = element_text(
           size = 12,
           face = "plain",
@@ -1031,6 +1074,39 @@ server <- function(input, output, session) {
     )
   })
   
+  # Check interval ----
+  
+  # sort out options for 3rd crit
+  # depending on whether adjusted is ticked, other input options change
+  observe({
+    if (input$sg_crit3_adjust_check == TRUE) {
+      updateNumericInput(session,
+                         "sg_crit3_critical_value_check",
+                         value = NA)
+      updateSelectInput(
+        session,
+        "sg_crit3_alpha_check",
+        choices = list(
+          ".05" = 0.05,
+          ".01" = 0.01,
+          ".001" = 0.001
+        ),
+        selected = 0.05
+      )
+    } else if (input$sg_crit3_adjust_check == FALSE) {
+      updateNumericInput(session,
+                         "sg_crit3_critical_value_check",
+                         value = 2.776)
+      
+      updateSelectInput(
+        session,
+        "sg_crit3_alpha_check",
+        choices = list("NA" = "NA"),
+        selected = "NA"
+      )
+    }
+  })
+  
   output$check_interval_txt <- renderPrint({
     if (input$sg_crit1_check == TRUE) {
       sg_crit1_cutoff_check <- input$sg_crit1_cutoff_check
@@ -1050,7 +1126,10 @@ server <- function(input, output, session) {
       sg_crit1_cutoff = sg_crit1_cutoff_check,
       sg_crit2_pct = sg_crit2_pct_check,
       sg_crit3 = input$sg_crit3_check,
+      sg_crit3_critical_value = input$sg_crit3_critical_value_check,
+      sg_crit3_adjust = input$sg_crit3_adjust_check,
       sg_crit3_alpha = as.numeric(input$sg_crit3_alpha_check),
+
       identify = "sg"
     )
   })
@@ -1086,13 +1165,21 @@ server <- function(input, output, session) {
     )
     
     ggplot(data = data, aes(x = time, y = score, group = 1)) +
-      geom_point(colour = "#239b89ff", size = 2) +
+      geom_point(colour = "#239b89ff", size = 3) +
       geom_line(data = data[!is.na(data$score), ],
                 colour = "#239b89ff",
                 alpha = .4) +
       ggplot2::scale_x_discrete(labels = base::c("N-2", "N-1", "N",
                                                  "N+1", "N+2", "N+3")) +
-      ggplot2::theme(text = ggplot2::element_text(size = 18))
+      ggplot2::theme(text = ggplot2::element_text(size = 18)) +
+      labs(color = "Missing", x = "Session", y = "Value", title = paste0("Source: Based on values entered in the left panel.")) +
+      theme(plot.title = element_text(
+        size = 12,
+        face = "plain",
+        colour = "grey40"
+      ),
+      legend.position = "bottom") +
+      geom_miss_point(size = 3, prop_below = .2)
   })
   
   
@@ -1100,27 +1187,39 @@ server <- function(input, output, session) {
   output$suddengains_tutorial_html <- renderUI({
     suddengains_tutorial_html <-
       tags$iframe(frameborder = "0",
-                  style = "height:100vh; width:100%; scrolling=yes",
+                  style = "height:90vh; width:100%; scrolling=yes",
                   src = "https://cran.r-project.org/web/packages/suddengains/vignettes/suddengains-tutorial.html")
     print(suddengains_tutorial_html)
     suddengains_tutorial_html
   })
   
   output$suddengains_paper_pdf <- renderUI({
+    
+
     suddengains_cran_pdf <-
       tags$iframe(frameborder = "0",
                   type="application/pdf",
-                  style = "height:100vh; width:100%; scrolling=yes",
-                  src = "https://docs.google.com/viewer?url=https://milanwiedemann.github.io/shinygains/r-suddengains.pdf&embedded=true")
+                  style = "height:90vh; width:100%; scrolling=yes",
+                  src = "https://milanwiedemann.github.io/shinygains/r-suddengains.pdf")
     print(suddengains_cran_pdf)
     suddengains_cran_pdf
+    
+    
+    
+    # suddengains_cran_pdf <-
+    #   tags$iframe(frameborder = "0",
+    #               type="application/pdf",
+    #               style = "height:100vh; width:100%; scrolling=yes",
+    #               src = "https://docs.google.com/viewerng/viewer?url=https://milanwiedemann.github.io/shinygains/r-suddengains.pdf&embedded=true")
+    # print(suddengains_cran_pdf)
+    # suddengains_cran_pdf
   })
   
   output$suddengains_cran_pdf <- renderUI({
     suddengains_cran_pdf <-
       tags$iframe(frameborder = "0",
-                  type="application/pdf",
-                  style = "height:100vh; width:100%; scrolling=yes",
+                  # type="application/pdf",
+                  style = "height:90vh; width:100%; scrolling=yes",
                   src = "https://cran.r-project.org/web/packages/suddengains/suddengains.pdf")
     print(suddengains_cran_pdf)
     suddengains_cran_pdf
@@ -1129,16 +1228,14 @@ server <- function(input, output, session) {
   output$suddengains_zotero_references_bibbase <- renderUI({
     suddengains_zotero_references_bibbase <-
       tags$iframe(frameborder = "0",
-                  style = "height:100vh; width:100%; scrolling=yes",
+                  style = "height:90vh; width:100%; scrolling=yes",
                   src = "https://bibbase.org/show?bib=https%3A%2F%2Fapi.zotero.org%2Fgroups%2F2280342%2Fitems%3Fkey%3DIDng9wgu628dYdU2FyH7gwwh%26format%3Dbibtex%26limit%3D100")
     print(suddengains_zotero_references_bibbase)
     suddengains_zotero_references_bibbase
   })
   
-  
-  
   # 999 Variable Names ----
-  
+  # Well this is super confusing, change to tibble at some point
   data_sg_var_names_labels <- tibble::tribble(
     ~ var_name,
     ~ var_label,
@@ -1174,26 +1271,24 @@ server <- function(input, output, session) {
     "Reversal TRUE / FALSE",
   )
   
-  
   output$sg_var_names_labels <-
     DT::renderDataTable(
       DT::datatable(
         data_sg_var_names_labels,
-        caption = "New Variables created by create_bysg() and create_byperson() functions.",
+        caption = "Table: New Variables created by create_bysg() and create_byperson() functions.",
         colnames = c("Variable Name", "Variable Label"),
         options = list(
           pageLength = 15,
           paging = FALSE,
           scrollX = TRUE,
           fixedColumns = TRUE,
-          searching = FALSE
+          searching = FALSE,
+          dom='t',
+          ordering = FALSE
         ),
         rownames = FALSE
       )
     )
-  
-  
-  
   
 }
 # Run the application
