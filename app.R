@@ -41,6 +41,7 @@ ui <- tagList(tags$head(
       </script>"
   )
 ),
+
 # 1. UI Navigation Bar ----
 navbarPage(
   "shinygains",
@@ -61,10 +62,8 @@ navbarPage(
             selectInput(
               "data",
               label = h5("Select Input Data Set:"),
-              choices = list(
-                "Example Data Set 1" = "sgdata",
-                "Example Data Set 2" = "sgdata_no_na"
-              ),
+              choices = list("Example Data Set 1" = "sgdata",
+                             "Example Data Set 2" = "sgdata_no_na"),
               selected = "sgdata"
             ),
             selectInput(
@@ -120,8 +119,7 @@ navbarPage(
               step = 1
             ),
             helpText(
-              "Note: Define percentage of random missing values to be added to the selected input data set. Example Data Set 1 already has 14% missing, so this slider wont be accurate.
-              Example Data Set 2 has complete data."
+              "Note: To explore the impact of missing data we recommend using exsmple dataset 2, which has complete data (Dataset 1 has 14% missing data)."
             )
           )
         )
@@ -215,6 +213,9 @@ navbarPage(
           )
         )
       )
+      # ,
+      # hr(),
+      # actionButton("citation1", "How do I cite this App?"),
     ),
     # 1. UI Results ----
     column(
@@ -269,7 +270,7 @@ navbarPage(
                                                   )
                                                 ))),
                                 helpText(
-                                  "Note: To change the selected gain for the byperson data set, go to the 'Create byperson Data Set' panel at the top."
+                                  "Note: To change the selected gain for the byperson data set, go to the 'Output byperson Data Set' panel at the top."
                                 )
                               )
                             )),
@@ -344,17 +345,17 @@ navbarPage(
         ),
         # 1. UI bysg Data Set ----
         tabPanel(
-          HTML("Create <I>bysg</I> Data Set"),
+          HTML("Output <I>bysg</I> Data Set"),
           helpText(),
           DT::dataTableOutput("bysg_table")
         ),
         # 1. UI byperson Data Set ----
         tabPanel(
-          HTML("Create <I>byperson</I> Data Set"),
+          HTML("Output <I>byperson</I> Data Set"),
           helpText(),
           selectInput(
             "multiple_sg_select",
-            label = h5("Specify which sudden gain/loss to select:"),
+            label = h5("Specify which sudden gain/loss to select in cases where there is more than one sudden gain per persoin:"),
             choices = list(
               "first gain/loss" = "first",
               "last gain/loss" = "last",
@@ -519,6 +520,8 @@ navbarPage(
           )
         )
       )
+      # , hr(),
+      # actionButton("citation2", "How do I cite this App?"),
     ),
     column(9,
            fixedRow(
@@ -535,7 +538,7 @@ navbarPage(
            ))
   ),
   tabPanel(
-    "Help",
+    "I need Help 🤯",
     tabsetPanel(
       tabPanel(
         "Variable Descriptions",
@@ -565,6 +568,20 @@ navbarPage(
         "References",
         helpText(),
         htmlOutput("suddengains_zotero_references_bibbase")
+      ),
+      
+      tags$footer(
+        actionButton("citation1", "How do I cite this App?"),
+        align = "center",
+        style = "
+              position:fixed;
+              bottom:0;
+              width:100%;
+              height:50px;   /* Height of the footer */
+              color: white;
+              padding: 10px;
+              background-color: white;
+              z-index: 1000;"
       )
     )
   )
@@ -572,7 +589,37 @@ navbarPage(
 
 # Define server ----
 server <- function(input, output, session) {
-  # Select variables -----
+  # Select  -----
+  
+  ## MAKE SG CRIT 1 POSITIVE AND SL NEGATIVE ----
+  observe({
+    if (input$sgsl == "sl") {
+      
+      if (input$sg_crit1_cutoff > 0) {
+        
+        updateNumericInput(session,
+                           "sg_crit1_cutoff",
+                           value = -1 * abs(input$sg_crit1_cutoff) )
+        
+      }
+    }
+  })
+  
+  
+  observe({
+    if (input$sgsl == "sg") {
+      
+      if (input$sg_crit1_cutoff < 0) {
+        
+        updateNumericInput(session,
+                           "sg_crit1_cutoff",
+                           value = abs(input$sg_crit1_cutoff) )
+        
+      }
+    }
+  })
+      
+      
   
   # Create dataset with option to add missing values
   sgdata_reactive <- reactive({
@@ -588,7 +635,7 @@ server <- function(input, output, session) {
       select("id", input$sg_var_list)
     
     sgdata_weekly_temp_na <- sgdata_weekly_temp %>%
-      tidyr::gather(vars, value, -id) %>%
+      tidyr::gather(vars, value,-id) %>%
       dplyr::mutate(vars = base::factor(vars, levels =  input$sg_var_list)) %>%
       dplyr::mutate(
         random_num = runif(nrow(.)),
@@ -626,7 +673,7 @@ server <- function(input, output, session) {
     ))
   
   
-
+  
   
   
   
@@ -640,9 +687,9 @@ server <- function(input, output, session) {
   #   #
   #   # sgdata_bdi1to12_na_pct <- 1 - mean(complete.cases(sgdata_long$value))
   #   # 0.1375969 missing ins sgdata
-  # 
+  #
   #   if (input$data == "sgdata") {
-  # 
+  #
   #     updateSliderInput(session = session,
   #                       inputId = "na_pct",
   #                       # label = h5("Missingness in % in Repeated Measures:"),
@@ -652,7 +699,7 @@ server <- function(input, output, session) {
   #       step = 1
   #     )
   #   } else if (input$data == "sgdata_no_na") {
-  #     
+  #
   #     updateSliderInput(session = session,
   #                       inputId = "na_pct",
   #                       # label = h5("Missingness in % in Repeated Measures:"),
@@ -693,7 +740,10 @@ server <- function(input, output, session) {
         selected = "NA"
       )
     }
-  })
+  })  
+  
+  
+
   
   # Create bysg data
   bysg_reactive <- reactive({
@@ -708,6 +758,8 @@ server <- function(input, output, session) {
     } else if (input$sg_crit2 == FALSE) {
       sg_crit2_pct <- NULL
     }
+    
+    
     
     create_bysg(
       data = sgdata_reactive(),
@@ -725,6 +777,8 @@ server <- function(input, output, session) {
       sg_measure_name = "bdi"
     )
   })
+  
+  
   
   # Create bysg data
   byperson_reactive <- reactive({
@@ -787,13 +841,14 @@ server <- function(input, output, session) {
       DT::datatable(
         byperson_reactive(),
         caption = paste0(
-          "Table: Data set with one selected sudden gain (",
-          input$multiple_sg_select,
-          ") for each participant who experienced a sudden gain (n = ",
+          "Table: Data set with one selected sudden gain for for each participant who experienced a sudden gain (n = ",
           summarise(byperson_reactive(), sum(sg_crit123 == 1, na.rm = TRUE))[[1]],
           ") and all participants without sudden gains (n = ",
           summarise(byperson_reactive(), sum(sg_crit123 == 0, na.rm = TRUE))[[1]],
-          ")."
+          ").",
+          " In cases where there is more than one sudden gain, the ",
+          input$multiple_sg_select,
+          " was chosen."
         ),
         options = list(
           pageLength = 10,
@@ -1129,13 +1184,13 @@ server <- function(input, output, session) {
       sg_crit3_critical_value = input$sg_crit3_critical_value_check,
       sg_crit3_adjust = input$sg_crit3_adjust_check,
       sg_crit3_alpha = as.numeric(input$sg_crit3_alpha_check),
-
+      
       identify = "sg"
     )
   })
   
   output$plot_sg_average_check <- renderPlot({
-    data <- tibble(
+    data_check_interval <- tibble(
       time = factor(
         x = c(
           "sg_2n_check",
@@ -1164,22 +1219,37 @@ server <- function(input, output, session) {
       )
     )
     
-    ggplot(data = data, aes(x = time, y = score, group = 1)) +
+    plot_check_interval <-
+      ggplot(data = data_check_interval, aes(x = time, y = score, group = 1)) +
       geom_point(colour = "#239b89ff", size = 3) +
-      geom_line(data = data[!is.na(data$score), ],
+      geom_line(data = data_check_interval[!is.na(data_check_interval$score),],
                 colour = "#239b89ff",
                 alpha = .4) +
       ggplot2::scale_x_discrete(labels = base::c("N-2", "N-1", "N",
                                                  "N+1", "N+2", "N+3")) +
       ggplot2::theme(text = ggplot2::element_text(size = 18)) +
-      labs(color = "Missing", x = "Session", y = "Value", title = paste0("Source: Based on values entered in the left panel.")) +
-      theme(plot.title = element_text(
-        size = 12,
-        face = "plain",
-        colour = "grey40"
-      ),
-      legend.position = "bottom") +
-      geom_miss_point(size = 3, prop_below = .2)
+      labs(
+        color = "Missing",
+        x = "Session",
+        y = "Value",
+        title = paste0("Source: Based on values entered in the left panel.")
+      ) +
+      theme(
+        plot.title = element_text(
+          size = 12,
+          face = "plain",
+          colour = "grey40"
+        ),
+        legend.position = "bottom"
+      )
+    
+    if (all(!is.na(data_check_interval$score)) == FALSE) {
+      plot_check_interval <- plot_check_interval +
+        geom_miss_point(size = 3, prop_below = .2)
+    }
+    
+    plot_check_interval
+    
   })
   
   
@@ -1194,13 +1264,13 @@ server <- function(input, output, session) {
   })
   
   output$suddengains_paper_pdf <- renderUI({
-    
-
     suddengains_cran_pdf <-
-      tags$iframe(frameborder = "0",
-                  type="application/pdf",
-                  style = "height:90vh; width:100%; scrolling=yes",
-                  src = "https://milanwiedemann.github.io/shinygains/r-suddengains.pdf")
+      tags$iframe(
+        frameborder = "0",
+        type = "application/pdf",
+        style = "height:90vh; width:100%; scrolling=yes",
+        src = "https://milanwiedemann.github.io/shinygains/r-suddengains.pdf"
+      )
     print(suddengains_cran_pdf)
     suddengains_cran_pdf
     
@@ -1283,12 +1353,42 @@ server <- function(input, output, session) {
           scrollX = TRUE,
           fixedColumns = TRUE,
           searching = FALSE,
-          dom='t',
+          dom = 't',
           ordering = FALSE
         ),
         rownames = FALSE
       )
     )
+  
+  
+  # CITATION ----
+  observeEvent(input$citation1, {
+    showModal(modalDialog(
+      title = "Citation ",
+      HTML("Please cite this Shiny App or the R package if you've used it for your work.
+      <br><br>
+      Wiedemann, M., Thew, G. R., Stott, R., & Ehlers, A. (2019). suddengains: An R package to identify sudden gains in longitudinal data.
+      <a href='https://doi.org/10.31234/osf.io/2wa84'>https://doi.org/10.31234/osf.io/2wa84</a><br><br>❤️
+           "
+      ),
+      easyClose = TRUE
+    ))
+  })
+  
+  observeEvent(input$citation2, {
+    showModal(modalDialog(
+      title = "Citation ",
+      HTML(
+        "Please cite this Shiny App or the R package if you've used it for your work.
+      <br>
+      <br>
+      Wiedemann, M., Thew, G. R., Stott, R., & Ehlers, A. (2019). suddengains: An R package to identify sudden gains in longitudinal data.
+           <a href='https://doi.org/10.31234/osf.io/2wa84'>https://doi.org/10.31234/osf.io/2wa84</a>          <br><br>❤️
+           "
+      ),
+      easyClose = TRUE
+    ))
+  })
   
 }
 # Run the application
