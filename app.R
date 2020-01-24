@@ -538,7 +538,7 @@ navbarPage(
            ))
   ),
   tabPanel(
-    "I need Help 🤯",
+    "Resources 📚",
     tabsetPanel(
       tabPanel(
         "Variable Descriptions",
@@ -546,21 +546,17 @@ navbarPage(
         # just a placeholder for a little bit top margin
         DT::dataTableOutput("sg_var_names_labels")
       ),
+      tabPanel(title = "suddengains Tutorial Vignette",
+               helpText(),
+               htmlOutput("suddengains_tutorial_html")
+      ),
       tabPanel(
-        "suddengains Paper",
+        "suddengains Tutorial Paper (PDF)",
         helpText(),
         htmlOutput("suddengains_paper_pdf")
       ),
-      
       tabPanel(
-        "suddengains Tutorial",
-        # tags$iframe(style="height:100vh; width:100%; scrolling=yes",
-        #             src="https://cran.r-project.org/web/packages/suddengains/vignettes/suddengains-tutorial.html")
-        helpText(),
-        htmlOutput("suddengains_tutorial_html")
-      ),
-      tabPanel(
-        "suddengains CRAN",
+        "suddengains Reference Manual (PDF)",
         helpText(),
         htmlOutput("suddengains_cran_pdf")
       ),
@@ -841,14 +837,14 @@ server <- function(input, output, session) {
       DT::datatable(
         byperson_reactive(),
         caption = paste0(
-          "Table: Data set with one selected sudden gain for for each participant who experienced a sudden gain (n = ",
+          "Table: Data set showing participants with (n = ",
           summarise(byperson_reactive(), sum(sg_crit123 == 1, na.rm = TRUE))[[1]],
-          ") and all participants without sudden gains (n = ",
+          ") and without (n = ",
           summarise(byperson_reactive(), sum(sg_crit123 == 0, na.rm = TRUE))[[1]],
-          ").",
+          ") a sudden gain.",
           " In cases where there is more than one sudden gain, the ",
           input$multiple_sg_select,
-          " was chosen."
+          " was selected."
         ),
         options = list(
           pageLength = 10,
@@ -1046,22 +1042,19 @@ server <- function(input, output, session) {
   output$descriptives_sg_crit123 <- renderText({
     paste0(
       "Crit 1: ",
-      input$sg_crit1,
+      ifelse(input$sg_crit1 == TRUE, "YES", "NO"),
       ", Cut-off: ",
       input$sg_crit1_cutoff,
       "\n",
       "Crit 2: ",
-      input$sg_crit2,
+      ifelse(input$sg_crit2 == TRUE, "YES", "NO"),
       ", Pct: ",
       input$sg_crit2_pct,
       "%",
       "\n",
       "Crit 3: ",
-      input$sg_crit3,
-      # ", Adjust Critical Value: ",
-      # input$sg_crit3_adjust,
-      "\n",
-      "Crit 3, Critical Value(s): ",
+      ifelse(input$sg_crit3 == TRUE, "YES", "NO"),
+      ', Critical Value(s): ',
       if (input$sg_crit3_adjust == FALSE) {
         input$sg_crit3_critical_value
         
