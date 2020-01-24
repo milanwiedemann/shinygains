@@ -47,8 +47,7 @@ navbarPage(
   "shinygains",
   # 1. UI Sudden Gains Panel ----
   tabPanel(
-    "Identify Sudden Gains",
-    column(
+    "Identify Sudden Gains ⭐",     column(
       width = 3,
       helpText(),
       # 1. UI Data Characteristics ----
@@ -102,7 +101,7 @@ navbarPage(
             helpText(
               "Select variables in the order that reflects the time points that were measured.
                Example Data Set 1 has 14% missing values to illustrate special cases of identifying sudden gains.
-               Example Data Set 2 has comeplete data."
+               Example Data Set 2 has complete data."
             )
           )
         ),
@@ -119,7 +118,7 @@ navbarPage(
               step = 1
             ),
             helpText(
-              "Note: To explore the impact of missing data we recommend using exsmple dataset 2, which has complete data (Dataset 1 has 14% missing data)."
+              "Note: To explore the impact of missing data we recommend using example dataset 2, which has complete data (Dataset 1 has 14% missing data)."
             )
           )
         )
@@ -203,12 +202,28 @@ navbarPage(
               step = .1
             ),
             helpText(
-              "Noite: See the 'Recerences' tab at the top for papers discussing the third criterion."
+              "Note: For discussions about the third criterion see for example Tang et al.",
               # Just some random code about hoe to include a link in UI
-              # a("semPlot: Path Diagrams and Visual Analysis of Various SEM Packages' Output. R package version 1.1.2.",
-              #          href="https://CRAN.R-project.org/package=semPlot",
-              #          target="_blank"
-              #          )
+              a("(2005",
+                href = "https://doi.org/10.1037/0022-006X.73.1.168",
+                target = "_blank"),
+              ", ",
+              a("2015)",
+                href = "https://doi.org/10.1002/9781118625392.wbecp378",
+                target = "_blank"),
+              ", Vittengl et al." ,
+              a("(2005",
+                href = "https://doi.org/10.1037/0022-006X.73.1.173",
+                target = "_blank"), 
+              ", ", 
+              a("2015)",
+                href = "https://doi.org/10.2174/1573400510666140929195441",
+                target = "_blank"),
+              ", and Lutz et al.",
+              a("(2013)",
+                href = "https://doi.org/10.1080/10503307.2012.693837",
+                target = "_blank"),
+              "."
             )
           )
         )
@@ -372,7 +387,7 @@ navbarPage(
   ),
   # 2. UI Check Interval ----
   tabPanel(
-    "Check Interval",
+    "Check Interval 🧐",
     column(
       width = 3,
       helpText(),
@@ -510,11 +525,28 @@ navbarPage(
               step = .1
             ),
             helpText(
-              "Noite: See the 'Recerences' tab at the top for papers discussing the third criterion."
-              # a("semPlot: Path Diagrams and Visual Analysis of Various SEM Packages' Output. R package version 1.1.2.",
-              #          href="https://CRAN.R-project.org/package=semPlot",
-              #          target="_blank"
-              #          )
+              "Note: For discussions about the third criterion see for example Tang et al.",
+              # Just some random code about hoe to include a link in UI
+              a("(2005",
+                href = "https://doi.org/10.1037/0022-006X.73.1.168",
+                target = "_blank"),
+              ", ",
+              a("2015)",
+                href = "https://doi.org/10.1002/9781118625392.wbecp378",
+                target = "_blank"),
+              ", Vittengl et al." ,
+              a("(2005",
+                href = "https://doi.org/10.1037/0022-006X.73.1.173",
+                target = "_blank"), 
+              ", ", 
+              a("2015)",
+                href = "https://doi.org/10.2174/1573400510666140929195441",
+                target = "_blank"),
+              ", and Lutz et al.",
+              a("(2013)",
+                href = "https://doi.org/10.1080/10503307.2012.693837",
+                target = "_blank"),
+              "."
             )
             
           )
@@ -568,12 +600,11 @@ navbarPage(
       
       tags$footer(
         actionButton("citation1", "How do I cite this App?"),
-        align = "center",
-        style = "
+        style = "text-align:center; align: center;
               position:fixed;
               bottom:0;
               width:100%;
-              height:50px;   /* Height of the footer */
+              height:50px;
               color: white;
               padding: 10px;
               background-color: white;
@@ -1178,7 +1209,7 @@ server <- function(input, output, session) {
       sg_crit3_adjust = input$sg_crit3_adjust_check,
       sg_crit3_alpha = as.numeric(input$sg_crit3_alpha_check),
       
-      identify = "sg"
+      identify = input$sgsl_check
     )
   })
   
@@ -1222,7 +1253,7 @@ server <- function(input, output, session) {
                                                  "N+1", "N+2", "N+3")) +
       ggplot2::theme(text = ggplot2::element_text(size = 18)) +
       labs(
-        color = "Missing",
+        color = "",
         x = "Session",
         y = "Value",
         title = paste0("Source: Based on values entered in the left panel.")
@@ -1357,31 +1388,19 @@ server <- function(input, output, session) {
   # CITATION ----
   observeEvent(input$citation1, {
     showModal(modalDialog(
-      title = "Citation ",
+      title = "Citation",
       HTML("Please cite this Shiny App or the R package if you've used it for your work.
       <br><br>
       Wiedemann, M., Thew, G. R., Stott, R., & Ehlers, A. (2019). suddengains: An R package to identify sudden gains in longitudinal data.
-      <a href='https://doi.org/10.31234/osf.io/2wa84'>https://doi.org/10.31234/osf.io/2wa84</a><br><br>❤️
+      <a href='https://doi.org/10.31234/osf.io/2wa84'>https://doi.org/10.31234/osf.io/2wa84</a>
+      <br><br>
+      <center>❤️</center>
            "
       ),
       easyClose = TRUE
     ))
   })
   
-  observeEvent(input$citation2, {
-    showModal(modalDialog(
-      title = "Citation ",
-      HTML(
-        "Please cite this Shiny App or the R package if you've used it for your work.
-      <br>
-      <br>
-      Wiedemann, M., Thew, G. R., Stott, R., & Ehlers, A. (2019). suddengains: An R package to identify sudden gains in longitudinal data.
-           <a href='https://doi.org/10.31234/osf.io/2wa84'>https://doi.org/10.31234/osf.io/2wa84</a>          <br><br>❤️
-           "
-      ),
-      easyClose = TRUE
-    ))
-  })
   
 }
 # Run the application
