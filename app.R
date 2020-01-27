@@ -294,7 +294,7 @@ navbarPage(
                             helpText(),
                             fixedRow(
                               column(
-                                10,
+                                5,
                                 selectInput(
                                   "select_ids_list",
                                   h5("Select IDs:"),
@@ -345,11 +345,20 @@ navbarPage(
                                   ),
                                   selected = c("2", "4", "5", "9"),
                                   multiple = TRUE
-                                ),
+                                )),
+                              column(
+                                5,
+                                h5("Formatting Options:"),
+                                checkboxInput("plot_long_connect_missing",
+                                              label = "Connect Missing Values",
+                                              value = TRUE)),
+                              fixedRow(
+                                column(
+                                  10,
                                 hr(),
                                 h5("Trajectories of BDI scores for a selection of participants:"),
                                 plotOutput("plot_sg_longitudinal")
-                              )
+                              ))
                             ))
                  )),
         # 1. UI Input Data Set ----
@@ -1046,7 +1055,7 @@ server <- function(input, output, session) {
   
   output$plot_sg_longitudinal <-   renderPlot({
     plot_sg_trajectories(
-      data = suddengains::sgdata,
+      data = sgdata_reactive(),
       id_var = "id",
       select_id_list = input$select_ids_list,
       var_list = input$sg_var_list,
@@ -1058,7 +1067,7 @@ server <- function(input, output, session) {
       viridis_option = "D",
       viridis_begin = 0,
       viridis_end = 1,
-      connect_missing = TRUE,
+      connect_missing = input$plot_long_connect_missing,
       scale_x_num = TRUE,
       scale_x_num_start = 1,
       apaish = FALSE,
