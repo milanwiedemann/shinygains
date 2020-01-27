@@ -19,6 +19,8 @@ library(readr)
 library(DT)
 library(naniar)
 options(htmlwidgets.TOJSON_ARGS = list(na = 'string'))
+# devtools::install_github("hadley/emo")
+library(emo)
 
 # Define UI ----
 ui <- tagList(tags$head(
@@ -47,7 +49,8 @@ navbarPage(
   "shinygains",
   # 1. UI Sudden Gains Panel ----
   tabPanel(
-    "Identify Sudden Gains ⭐",     column(
+    paste0("Identify Sudden Gains ", emo::ji("star")),
+    column(
       width = 3,
       helpText(),
       # 1. UI Data Characteristics ----
@@ -396,7 +399,7 @@ navbarPage(
   ),
   # 2. UI Check Interval ----
   tabPanel(
-    "Check Interval 🧐",
+    paste0("Check Interval ", emo::ji("monocle")),
     column(
       width = 3,
       helpText(),
@@ -579,7 +582,7 @@ navbarPage(
            ))
   ),
   tabPanel(
-    "Resources 📚",
+    paste0("Resources ", emo::ji("books")),
     tabsetPanel(
       tabPanel(
         "Variable Descriptions",
@@ -1403,7 +1406,7 @@ server <- function(input, output, session) {
       Wiedemann, M., Thew, G. R., Stott, R., & Ehlers, A. (2019). suddengains: An R package to identify sudden gains in longitudinal data.
       <a href='https://doi.org/10.31234/osf.io/2wa84'>https://doi.org/10.31234/osf.io/2wa84</a>
       <br><br>
-      <center>❤️</center>
+      <center><p style='font-size:40px'>  &#128156;</p></center>
            "
       ),
       easyClose = TRUE
