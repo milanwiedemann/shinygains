@@ -1305,7 +1305,7 @@ server <- function(input, output, session) {
         frameborder = "0",
         type = "application/pdf",
         style = "height:90vh; width:100%; scrolling=yes",
-        src = "https://milanwiedemann.github.io/shinygains/r-suddengains.pdf"
+        src = "https://milanwiedemann.github.io/shinygains/r-suddengains-plosone-v3-accepted.pdf"
       )
     print(suddengains_cran_pdf)
     suddengains_cran_pdf
@@ -1403,8 +1403,10 @@ server <- function(input, output, session) {
       title = "Citation",
       HTML("Please cite this Shiny App or the R package if you've used it for your work.
       <br><br>
-      Wiedemann, M., Thew, G. R., Stott, R., & Ehlers, A. (2019). suddengains: An R package to identify sudden gains in longitudinal data.
-      <a href='https://doi.org/10.31234/osf.io/2wa84'>https://doi.org/10.31234/osf.io/2wa84</a>
+      Wiedemann, M., Thew, G. R., Stott, R., & Ehlers, A. (2020). 
+      suddengains: An R package to identify sudden gains in longitudinal data.
+      PLOS ONE. doi:
+      <a href='https://doi.org/10.1371/journal.pone.0230276'>https://doi.org/10.1371/journal.pone.0230276</a>
       <br><br>
       <center><p style='font-size:40px'>  &#128156;</p></center>
            "
