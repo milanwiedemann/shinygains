@@ -362,7 +362,10 @@ navbarPage(
                                 h5("Trajectories of BDI scores for a selection of participants:"),
                                 plotOutput("plot_sg_longitudinal")
                               ))
-                            ))
+                            )),
+                   tabPanel("Available Intervals",
+                            helpText("The figure below shows the percentage of missing data in at each time point in panel A. The percentage of analysed versus not analysed session to session intervals is shown in panel B."),
+                            plotOutput("plot_sg_intervals"))
                  )),
         # 1. UI Input Data Set ----
         tabPanel(
@@ -700,7 +703,7 @@ server <- function(input, output, session) {
         nrow(sgdata_reactive()),
         " participants and ",
         length(input$sg_var_list),
-        " weekly measures."
+        " repeated measures."
       ),
       options = list(
         pageLength = 10,
@@ -1164,6 +1167,17 @@ server <- function(input, output, session) {
       }
     )
   })
+  
+  
+  
+  output$plot_sg_intervals <-   renderPlot({
+    plot_sg_intervals(
+      data = sgdata_reactive(),
+      sg_var_list = input$sg_var_list,
+      id_var = "id") &
+      theme(text = element_text(size = 14))
+  })
+  
   
   # Check interval ----
   
